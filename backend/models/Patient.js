@@ -1,0 +1,1 @@
+// patient schema - about the patient details like medical conditions,bllod group and all sb chijo ke liye

@@ -1,0 +1,1 @@
+//user schema - about the user for name and details plus role
