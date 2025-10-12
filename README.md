@@ -1,1 +1,1 @@
-# CLINIC
+clinic-app

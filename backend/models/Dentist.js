@@ -1,1 +1,0 @@
-// schema for dentist details like specialization,experience etc

@@ -1,1 +1,0 @@
-// for clini_data.json file
