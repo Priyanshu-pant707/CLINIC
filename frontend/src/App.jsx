@@ -6,11 +6,13 @@ import SignUp from './pages/SignUp'
 
 const App = () => {
   return (
+    <>
   
-    //   <Index/>
-     //  <Clinics/>
-     // <Login/>
-<SignUp/>
+     <Index/>
+       <Clinics/>
+      <Login/>
+{/* <SignUp/> */}
+    </>
     
   )
 }

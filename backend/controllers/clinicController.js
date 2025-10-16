@@ -6,6 +6,7 @@ exports.listClinics = async (req, res) => {
     res.json(clinics);
 };
 
+
 // Get clinic by ID
 exports.getClinic = async (req, res) => {
     const clinic = await Clinic.findById(req.params.id)
