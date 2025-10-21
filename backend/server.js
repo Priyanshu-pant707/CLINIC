@@ -3,9 +3,15 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const mongoose=require('mongoose')
+const cors = require('cors');
 // Middleware
 app.use(express.json());
-
+app.use(cors());
+// Allow requests from any origin
+app.use(cors({
+    origin: '*',       // ✅ kisi bhi origin se request allow
+    credentials: true, // agar cookies/token bhejne hain
+}));
 
 //mongodb connection
 mongoose.connect(process.env.MONGO_URI, {
