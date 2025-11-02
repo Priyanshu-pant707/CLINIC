@@ -1,23 +1,19 @@
-const Doctor = require('../models/Doctor');
-const Clinic = require('../models/Clinic');
+const getAllAppointments=(req,res)=>{
+    res.send("will show the all apointments scheduled for today");
+}
 
-// Add doctor to clinic
-exports.addDoctor = async (req, res) => {
-    const clinic = await Clinic.findById(req.params.id);
-    if (!clinic) return res.status(404).json({ message: 'Clinic not found' });
+const setPrescription=(req,res)=>{
+    res.send("give prescription based on the pattient id");
+}
 
-    const newDoctor = new Doctor({ ...req.body, clinic: clinic._id });
-    await newDoctor.save();
 
-    clinic.doctors.push(newDoctor._id);
-    await clinic.save();
+const showAllPatients=(req,res)=>{
+    res.send("shwoing the details of the patient associated to the particular doctor");
+}
 
-    res.status(201).json({ message: 'Doctor added', doctor: newDoctor });
-};
 
-// List doctors of a clinic
-exports.listDoctors = async (req, res) => {
-    const clinic = await Clinic.findById(req.params.id).populate('doctors');
-    if (!clinic) return res.status(404).json({ message: 'Clinic not found' });
-    res.json(clinic.doctors);
+module.exports={
+    getAllAppointments,
+    setPrescription,
+    showAllPatients
 };

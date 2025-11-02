@@ -1,36 +1,40 @@
 const express = require('express');
+const connectDb = require('./config/db');
 require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
-const mongoose=require('mongoose')
-const cors = require('cors');
+
+
+
 // Middleware
 app.use(express.json());
-app.use(cors());
-// Allow requests from any origin
-app.use(cors({
-    origin: '*',       // ✅ kisi bhi origin se request allow
-    credentials: true, // agar cookies/token bhejne hain
-}));
 
-//mongodb connection
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB Atlas connected'))
-.catch(err => console.error('MongoDB connection error:', err));
 
+
+//database connection
+connectDb();
 
 
 // Routes
-const clinicRoutes = require('./routes/clinicRoutes');
-const doctorRoutes = require('./routes/doctorRoutes');
-const patientRoutes = require('./routes/patientRoutes');
 
-app.use('/clinic', clinicRoutes);
-app.use('/clinic', doctorRoutes);
-app.use('/clinic', patientRoutes);
+// super admin routes
+
+const superRoutes = require('./routes/superAdminRoutes');
+app.use('/api/superadmin', superRoutes);
+
+// clinic admin routes
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/api/admin/clinics', adminRoutes);
+
+// doctors routes
+
+const doctorRoutes = require('./routes/doctorRoutes');
+app.use('/api/clinic/doctor', doctorRoutes);
+
+// and the patient routes
+
+const patientRoutes = require('./routes/patientRoutes');
+app.use('/api/clinic/patient', patientRoutes);
 
 // Root route
 app.get('/', (req, res) => {

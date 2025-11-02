@@ -1,23 +1,26 @@
-const Patient = require('../models/Patient');
-const Clinic = require('../models/Clinic');
+const bookAppointment=(req,res)=>{
+    res.send("booking new appointment using form and anything else");
+}
 
-// Add patient to clinic
-exports.addPatient = async (req, res) => {
-    const clinic = await Clinic.findById(req.params.id);
-    if (!clinic) return res.status(404).json({ message: 'Clinic not found' });
 
-    const newPatient = new Patient({ ...req.body, clinic: clinic._id });
-    await newPatient.save();
+const showAllAppointments=(req,res)=>{
+    res.send("show all the ongoing or upcoming appointment / confirmed appointment or pending appointments");
 
-    clinic.patients.push(newPatient._id);
-    await clinic.save();
+}
 
-    res.status(201).json({ message: 'Patient added', patient: newPatient });
-};
+const showAllPrescriptions=(req,res)=>{
+    res.send("showing the proper prescription all text theory and medical infor withe the proper doses");
+}
 
-// List patients of a clinic
-exports.listPatients = async (req, res) => {
-    const clinic = await Clinic.findById(req.params.id).populate('patients');
-    if (!clinic) return res.status(404).json({ message: 'Clinic not found' });
-    res.json(clinic.patients);
-};
+
+const patientInfo=(res,res)=>{
+    res.send("showing the pateint details to the dashboard according to the patient id");
+}
+
+
+module.exports={
+    bookAppointment,
+    showAllAppointments,
+    showAllPrescriptions,
+    patientInfo
+}   
