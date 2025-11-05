@@ -1,25 +1,35 @@
-const express = require("express")
-
+const express = require("express");
 const router = express.Router();
 
+// middlewares
+const verifyToken = require("../middlewares/authMiddleware");
+const roleAuthenticator = require("../middlewares/roleMiddleware");
 
-//importing the function module
+// controller
+const superAdminController = require("../controllers/superAdminController");
 
-const superAdminController = require("../controllers/superAdminController")
+//  Get all clinics (Only superadmin)
+router.get(
+  "/clinics",
+  verifyToken,
+  roleAuthenticator(["superadmin"]),
+  superAdminController.getAllClinics
+);
 
+//  Delete a clinic by ID (Only superadmin)
+router.delete(
+  "/clinics/:id",
+  verifyToken,
+  roleAuthenticator(["superadmin"]),
+  superAdminController.deleteClinic
+);
 
-
-//routes
-router.get('/clinics',superAdminController.overview)
-
-router.post('/clinics', superAdminController.createClinic);
-
-router.delete('/clinics/:id',superAdminController.deleteClinic);
-
-
-router.post('/clinic/:id/admin', superAdminController.addAdmin);
-
-
-
+//  Create new clinic + assign clinic admin (Only superadmin)
+router.post(
+  "/clinic",
+  verifyToken,
+  roleAuthenticator(["superadmin"]),
+  superAdminController.addClinicWithAdmin
+);
 
 module.exports = router;

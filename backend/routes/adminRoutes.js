@@ -1,13 +1,43 @@
-const express=require('express')
+const express = require("express");
+const router = express.Router();
 
-const router=express.Router();
-const adminController=require("../controllers/adminController");
+// controller
+const adminController = require("../controllers/adminController");
 
-router.post('/:clinicId/doctors',adminController.addDoctor);
-router.post('/:clinicId/patients',adminController.addPatient);
+// middlewares
+const verifyToken = require("../middlewares/authMiddleware");
+const roleAuthenticator = require("../middlewares/roleMiddleware");
 
-router.get('/:clinicId/doctors',adminController.showDoctor);
-router.get('/:clinicId/patients',adminController.showPatient);
+//  Add Doctor (Only clinic admin)
+router.post(
+  "/doctors",
+  verifyToken,
+  roleAuthenticator(["clinicadmin"]),
+  adminController.addDoctor
+);
 
+//  Add Patient (Only clinic admin)
+router.post(
+  "/patients",
+  verifyToken,
+  roleAuthenticator(["clinicadmin"]),
+  adminController.addPatient
+);
 
-module.exports=router;
+//  Show all Doctors in this clinic (Only clinic admin)
+router.get(
+  "/doctors",
+  verifyToken,
+  roleAuthenticator(["clinicadmin"]),
+  adminController.showDoctor
+);
+
+//  Show all Patients in this clinic (Only clinic admin)
+router.get(
+  "/patients",
+  verifyToken,
+  roleAuthenticator(["clinicadmin"]),
+  adminController.showPatient
+);
+
+module.exports = router;

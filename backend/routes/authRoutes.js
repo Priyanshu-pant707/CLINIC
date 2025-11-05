@@ -6,9 +6,7 @@ const authController=require('../controllers/authController');
 
 
 
-// signup
 
-router.post('/signup',authController.signup);
 
 
 
