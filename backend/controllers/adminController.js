@@ -22,6 +22,7 @@ const addDoctor = async (req, res) => {
             clinic: clinic._id
         });
 
+
         clinic.doctors.push(doctor._id);
         await clinic.save();
 

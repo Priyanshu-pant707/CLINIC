@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user");
-require("dotenv"), config();
+require("dotenv").config();
 
 // hum  hospital management tpye bna rhe h, ab user jo h vo manually clinic admin ke thorugh add ho gya h, ab hum login rotes create kr skte h, kyu sigunp ki permission khali clinic admin and super admin ko hogi, taki koi bhi not authenticated ya faltu acocunt website ko access na kreee.
 
@@ -61,4 +61,4 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = login;
+module.exports = {login};

@@ -1,10 +1,6 @@
 
-
-//const clinicModel = require("../.models/clinic");
-
-
-const clinicModel = require("../.models/clinic");
-const userModel = require("../.models/user");
+const clinicModel = require("../models/Clinic");
+const userModel = require("../models/user");
 
 const bcrypt=require("bcrypt");
 
