@@ -7,7 +7,7 @@ const doctorController=require(".././controllers/doctorController");
 
 router.get('/appointment',doctorController.getAllAppointments);
 router.post('/prescription/:patientId',doctorController.setPrescription);
-router.get('/:doctorID/patients',doctorController.showAllPatients);
+router.get('/patients',doctorController.showAllPatients);
 
 
 

@@ -11,7 +11,7 @@ app.use(express.json());
 
 
 //dummy
-const userModel=require("./models/user");
+const userModel = require("./models/user");
 
 //database connection
 connectDb();
@@ -23,16 +23,25 @@ addSuperAdmin();
 
 // Routes
 
-// super admin routes
+//authentication routes
+const authRoutes = require("./routes/authRoutes");
+app.use('/api/auth', authRoutes);
 
+// super admin routes
 const superRoutes = require('./routes/superAdminRoutes');
 app.use('/api/superadmin', superRoutes);
+
+
 // clinic admin routes
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/clinicadmin', adminRoutes);
 
-const authRoutes=require("./routes/authRoutes");
-app.use('/api/auth',authRoutes);
+
+// appointments routes 
+
+const appointmentRoutes = require("./routes/appointmentRoutes");
+app.use('/api/appointment', appointmentRoutes);
+
 
 // // doctors routes
 
@@ -49,8 +58,8 @@ app.get('/', (req, res) => {
     res.send('Dental Multi-Clinic API is running');
 });
 
-app.get('/userinfo',async(req,res)=>{
-    const data=await userModel.find();
+app.get('/userinfo', async (req, res) => {
+    const data = await userModel.find();
     res.send(data);
 
 })

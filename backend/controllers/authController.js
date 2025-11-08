@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+import SignUp from './../../frontend/src/pages/SignUp';
 
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user");
@@ -61,4 +62,50 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = {login};
+
+
+
+// agr user website visit krta h.
+
+
+const signUp = async () => {
+    try {
+        const { name, email, password, role, clinic } = req.body;
+
+
+        const isUserFind = await userModel.findOne({ email });
+
+
+        if (isUserFind) {
+            return res.status(404).json({
+                message: "Email is already registered"
+            })
+        }
+
+
+        //create new user without any role
+
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+
+        const newUser = await userModel.create({
+            name,
+            email,
+            password: hashedPassword,
+            role: "patient",
+            clinic: null
+        })
+
+        res.status(201).json({
+            message: "user registered successfully", newUser
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        })
+    }
+
+}
+
+module.exports = { login,signUp };

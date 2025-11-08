@@ -57,7 +57,7 @@ const addPatient = async (req, res) => {
             email,
             password: hashedPassword,
             role: "patient",
-            clinicL: clinic._id
+            clinic: clinic._id
         });
 
         clinic.patients.push(patient._id);
