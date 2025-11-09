@@ -123,9 +123,44 @@ res.status(200).json({
 
 
 
+// for patient
+
+
+const getPatientAppointments=async(req,res)=>{
+    try{
+        const patientId = req.user._id;
+        const appointments=await appointmentModel.find({patientId})
+        .populate("doctorId","name specialization")
+        . populate("clinicId","clinicName address")
+        .sort({date:-1});
+
+
+        if(!appointments.length){
+            return res.status(404).json({
+                success:false,
+                message:"No appointments found"
+            });
+        }
+
+
+        res.status(200).json({
+            success:true,
+            message:"Appointments fetched successfully",
+            count: appointments.length,
+            data:appointments,
+        })
+    }catch(err){
+        res.status(500).json({message:"internal server error"});
+    }
+}
+
+
+
+
 //  Export
 module.exports = {
   createAppointment,
   getAllAppointments,
   updateAppointmentStatus,
+  getPatientAppointments
 };

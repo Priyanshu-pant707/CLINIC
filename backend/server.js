@@ -39,8 +39,8 @@ app.use('/api/clinicadmin', adminRoutes);
 
 // appointments routes 
 
-const appointmentRoutes = require("./routes/appointmentRoutes");
-app.use('/api/appointment', appointmentRoutes);
+// const appointmentRoutes = require("./routes/appointmentRoutes");
+// app.use('/api/appointment', appointmentRoutes);
 
 
 // // doctors routes

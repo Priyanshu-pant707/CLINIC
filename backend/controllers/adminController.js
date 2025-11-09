@@ -73,7 +73,7 @@ const addPatient = async (req, res) => {
 
 const showDoctor = async (req, res) => {
     try {
-        const clinicId = req.params.clinicId;
+        const clinicId = req.user.clinicId;
 
 
         // find the clinic with the doctor details
@@ -98,7 +98,7 @@ const showDoctor = async (req, res) => {
 
 const showPatient = async(req, res) => {
 try{
-    const clinicId=req.params.clinicId;
+    const clinicId=req.user.clinicId;
     const clinic=await clinicModel.findById(clinicId).populate("patients","name email role");
 
     if(!clinic){

@@ -1,28 +1,31 @@
+
+
+
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const userModel = require("../models/user");
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-      return res.status(401).json({ message: 'Authorization header missing' });
-    }
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ message: "Authorization header missing" });
 
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ message: 'Token missing' });
-    }
+    const token = authHeader.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Token missing" });
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        console.error("JWT verify error:", err);
-        return res.status(401).json({ message: 'Invalid token' });
-      }
-      req.user = decoded;
-      next();
-    });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await userModel.findById(decoded.id).populate("clinic");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    req.user = {
+      id: user._id,
+      role: user.role,
+      clinicId: user.clinic?._id || null,
+    };
+
+    next();
   } catch (err) {
-    res.status(500).json({ message: 'Server error during token verification' });
+    res.status(401).json({ message: "Invalid or expired token" });
   }
 };
 

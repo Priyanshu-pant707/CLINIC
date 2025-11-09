@@ -5,8 +5,10 @@ const router=express.Router();
 
 const doctorController=require(".././controllers/doctorController");
 
-router.get('/appointment',doctorController.getAllAppointments);
-router.post('/prescription/:patientId',doctorController.setPrescription);
+
+const prescriptionController=require("../controllers/prescriptionController")
+router.get('/appointment',doctorController.getDoctorAppointments);
+router.post('/prescription/',prescriptionController.createPrescription);
 router.get('/patients',doctorController.showAllPatients);
 
 

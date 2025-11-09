@@ -19,5 +19,5 @@ router.post('/login', authController.login);
 //signup
 
 
-router.post('/post', authController.signUp)
+router.post('/signup', authController.signUp)
 module.exports = router;
