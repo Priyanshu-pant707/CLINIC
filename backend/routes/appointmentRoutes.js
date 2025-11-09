@@ -14,7 +14,7 @@ router.post('/', appointmentControllers.createAppointment);
 // for clinic admin and the doctor to visit and update the appointments
 
 
-router.get('/', appointmentController.getAllAppointments);
+router.get('/', appointmentControllers.getAllAppointments);
 
 
 // updating the appointment status for the user by the admin and doctor

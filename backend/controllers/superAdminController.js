@@ -21,57 +21,59 @@ const getAllClinics = async (req, res) => {
 
 //  creating clinic with the admin
 const addClinicWithAdmin = async (req, res) => {
+  try {
+    const { name, location, description, adminName, adminEmail, adminPassword } = req.body;
+    const createdBy = req.user.id;
 
-    try {
-        const { name, location, description, adminName, adminEmail, adminPassword } = req.body;
-        const createdBy = req.user.id;
-
-
-        // check if the clinic already exits
-
-        const existingClinic = await clinicModel.findOne({ name });
-        if (existingClinic) {
-            return res.status(400).json({
-                message: "Clinic Already exisits"
-            });
-        }
-
-        // create clinic admin
-
-        const hashedPassword = await bcrypt.hash(adminPassword, process.env.SALT);
-
-        const clinicAdmin = await userModel.create({
-            name: adminName,
-            email: adminEmail,
-            password: hashedPassword,
-            role: "clinicadmin"
-        });
-
-
-        //  create clinic
-
-        const clinic = await clinicModel.create({
-            name,
-            location,
-            description,
-            createdBy,
-            clinicAdmins: [clinicAdmin._id]
-        });
-
-        // link admin to clinic
-        clinicAdmin.clinic = clinic._id;
-        await clinicAdmin.save();
-
-
-        res.status(201).json({
-            message: "Clinic & clinic Admin created successfully", clinic,
-            admin: clinicAdmin
-        });
-
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+    // Step 1: Check if clinic exists
+    const existingClinic = await clinicModel.findOne({ name });
+    if (existingClinic) {
+      return res.status(400).json({ message: "Clinic already exists" });
     }
-}
+
+    // Step 2: Check if admin email already exists
+    const existingAdmin = await userModel.findOne({ email: adminEmail });
+    if (existingAdmin) {
+      return res.status(400).json({ message: "Clinic admin with this email already exists" });
+    }
+
+    // Step 3: Hash password safely
+    const saltRounds = Number(process.env.SALT) || 10;
+    const hashedPassword = await bcrypt.hash(adminPassword, saltRounds);
+
+    // Step 4: Create admin
+    const clinicAdmin = await userModel.create({
+      name: adminName,
+      email: adminEmail,
+      password: hashedPassword,
+      role: "clinicadmin",
+    });
+
+    // Step 5: Create clinic
+    const clinic = await clinicModel.create({
+      name,
+      location,
+      description,
+      createdBy,
+      clinicAdmins: [clinicAdmin._id],
+    });
+
+    // Step 6: Link admin to clinic
+    clinicAdmin.clinic = clinic._id;
+    await clinicAdmin.save();
+
+    // Step 7: Only send response once everything is done
+    return res.status(201).json({
+      message: "Clinic & clinic admin created successfully",
+      clinic,
+      admin: clinicAdmin,
+    });
+  } catch (err) {
+    console.error("Error in addClinicWithAdmin:", err);
+    return res.status(500).json({ message: "Server Error", error: err.message });
+  }
+};
+
 
 
 const deleteClinic = (req, res) => {

@@ -1,32 +1,29 @@
 const jwt = require("jsonwebtoken");
-
 require("dotenv").config();
-//creating the middleware
-const verifyToken = async (req, res, next) => {
 
-    const authHeader = req.header['authorization'];
-
-    const token = authHeader && authHeader.split(' ')[1];
-
-
-    if (!token) {
-        res.status(401).json({ message: "can access this route, no permission granted" });
+const verifyToken = (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+      return res.status(401).json({ message: 'Authorization header missing' });
     }
 
-    await jwt(token, process.env.JWT_SECRET, (err, user) => {
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Token missing' });
+    }
 
-        if (err) {
-            return res.status(403).json({ message: 'Invalid token' });
-        }
-
-        req.user = user;
-        next();
-
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        console.error("JWT verify error:", err);
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+      req.user = decoded;
+      next();
     });
-
-
-}
-
-
+  } catch (err) {
+    res.status(500).json({ message: 'Server error during token verification' });
+  }
+};
 
 module.exports = verifyToken;

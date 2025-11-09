@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-import SignUp from './../../frontend/src/pages/SignUp';
+
 
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user");
