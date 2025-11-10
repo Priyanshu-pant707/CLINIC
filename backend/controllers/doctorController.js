@@ -11,7 +11,7 @@ const appointmentModel = require("../models/appointment");
 // appointment list check krne ke liye.
 const getDoctorAppointments = async (req, res) => {
     try {
-        const doctorId = req.user._id; // logged in user - jwt token se mil jayega
+        const doctorId = req.user.id; // logged in user - jwt token se mil jayega
 
         // optional to verify it is actually a doctor or not
 
@@ -62,7 +62,7 @@ const getDoctorAppointments = async (req, res) => {
 
 const showAllPatients = async (req, res) => {
     try {
-        const doctorId = req.user._id;
+        const doctorId = req.user.id;
         const doctor = await userModel.findById(doctorId);
 
 

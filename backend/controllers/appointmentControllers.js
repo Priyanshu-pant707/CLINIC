@@ -5,8 +5,18 @@ const appointmentModel = require("../models/appointment");
 // Create Appointment
 const createAppointment = async (req, res) => {
   try {
-    const { doctorId, date, time, notes } = req.body;
-    const patientId = req.user._id; //  use _id (not _Id)
+    const {doctorName,date, time, notes } = req.body;
+
+    const findDoctor=await userModel.findOne({name:doctorName});
+    if(!findDoctor){
+      return res.status(403).json({
+        success:false,
+        message:"Can't find the user"
+
+      })
+    }
+    const doctorId=findDoctor._id;
+    const patientId = req.user.id; //  use _id (not _Id)
 
     // Check doctor existence
     const doctor = await userModel.findById(doctorId);
@@ -15,7 +25,7 @@ const createAppointment = async (req, res) => {
     }
 
     // Get clinic ID from doctor
-    const clinicId = doctor.clinicId;
+    const clinicId = doctor.clinic;
     if (!clinicId) {
       return res.status(404).json({ message: "Clinic not found" });
     }
@@ -51,6 +61,9 @@ const createAppointment = async (req, res) => {
       message: "Internal server error",
     });
   }
+
+
+
 };
 
 

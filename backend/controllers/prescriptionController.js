@@ -9,7 +9,7 @@ const appointmentModel=require("../models/appointment");
 const createPrescription =async(req,res)=>{
     try{
         const {appointmentId,diagnosis,medicines,notes}=req.body;
-        const doctorId=req.user._id;
+        const doctorId=req.user.id;
         const appointment= await appointmentModel.findById(appointmentId);
 
         if(!appointment){
@@ -41,10 +41,12 @@ const createPrescription =async(req,res)=>{
             data:prescription
         });
     }catch(err){
-        res.status(500).json({
-            success:false,
-            message:"Internal server error"
-        })
+        console.error("Prescription creation error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message,
+    });
     }
 };
 
@@ -55,7 +57,7 @@ const createPrescription =async(req,res)=>{
 
 const getPrescriptionByPatient =async(req,res)=>{
     try{
-        const  patientId= req.user._id;
+        const  patientId= req.user.id;
         const prescriptions=await prescriptionModel.find({patientId})
         .populate("doctorId","name email")
         . populate("clinicId","name location")

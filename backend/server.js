@@ -45,13 +45,13 @@ app.use('/api/clinicadmin', adminRoutes);
 
 // // doctors routes
 
-// const doctorRoutes = require('./routes/doctorRoutes');
-// app.use('/api/doctor', doctorRoutes);
+const doctorRoutes = require('./routes/doctorRoutes');
+app.use('/api/doctor', doctorRoutes);
 
-// // and the patient routes
+// and the patient routes
 
-// const patientRoutes = require('./routes/patientRoutes');
-// app.use('/api/patient', patientRoutes);
+const patientRoutes = require('./routes/patientRoutes');
+app.use('/api/patient', patientRoutes);
 
 // Root route
 app.get('/', (req, res) => {
