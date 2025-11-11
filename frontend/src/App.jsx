@@ -1,35 +1,93 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import ClinicAdminDashboard from "./pages/ClinicAdminDashboard";
+import DoctorDashboard from "./pages/DoctorDashboard";
+import PatientDashboard from "./pages/PatientDashboard";
+import NotFound from "./pages/NotFound";
 
-function App() {
-  const [count, setCount] = useState(0)
+const queryClient = new QueryClient();
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+function DashboardRedirect() {
+  const { user } = useAuth();
+  
+  if (!user) return <Navigate to="/login" replace />;
+  
+  switch (user.role) {
+    case 'super_admin':
+      return <Navigate to="/super-admin" replace />;
+    case 'clinic_admin':
+      return <Navigate to="/clinic-admin" replace />;
+    case 'doctor':
+      return <Navigate to="/doctor" replace />;
+    case 'patient':
+      return <Navigate to="/patient" replace />;
+    default:
+      return <Navigate to="/login" replace />;
+  }
 }
 
-export default App
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/dashboard" element={<DashboardRedirect />} />
+            
+            <Route 
+              path="/super-admin" 
+              element={
+                <ProtectedRoute allowedRoles={['super_admin']}>
+                  <SuperAdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/clinic-admin" 
+              element={
+                <ProtectedRoute allowedRoles={['clinic_admin']}>
+                  <ClinicAdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/doctor" 
+              element={
+                <ProtectedRoute allowedRoles={['doctor']}>
+                  <DoctorDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/patient" 
+              element={
+                <ProtectedRoute allowedRoles={['patient']}>
+                  <PatientDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;
+
