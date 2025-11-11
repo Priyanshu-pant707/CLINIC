@@ -1,1 +1,1 @@
-clinic-app 2.0
+clinic-app
