@@ -2,16 +2,26 @@
 const clinicModel = require("../models/Clinic");
 const userModel = require("../models/user");
 
-const bcrypt=require("bcrypt");
+const bcrypt = require("bcrypt");
+
+
+// nodemailer functions
+
+const sendMail = require("../utils/sendMail");
+
+
+
+// controllers 
+
 
 const getAllClinics = async (req, res) => {
 
-    require("dotenv").config();
-    // getting all the clinic details
-    const allclinicInfo = await clinicModel.find();
+  require("dotenv").config();
+  // getting all the clinic details
+  const allclinicInfo = await clinicModel.find();
 
-    // sending to the frontend 
-    res.send(allclinicInfo);
+  // sending to the frontend 
+  res.send(allclinicInfo);
 
 }
 
@@ -62,6 +72,34 @@ const addClinicWithAdmin = async (req, res) => {
     clinicAdmin.clinic = clinic._id;
     await clinicAdmin.save();
 
+
+
+    //send email to clinic admin 
+
+    // 📨 Send email to clinic admin
+    const mailHTML = `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>Welcome to MultiClinic System, ${adminName}!</h2>
+        <p>Your clinic <b>${name}</b> has been successfully registered.</p>
+        <p><b>Login Details:</b></p>
+        <ul>
+          <li>Email: ${adminEmail}</li>
+          <li>Password: ${adminPassword}</li>
+        </ul>
+        <p>Please login and change your password after first login.</p>
+        <br/>
+        <p>Best regards,<br/>MultiClinic Team</p>
+      </div>
+    `;
+    await sendMail(adminEmail, "Welcome to MultiClinic System!", mailHTML);
+
+
+
+
+
+
+
+
     // Step 7: Only send response once everything is done
     return res.status(201).json({
       message: "Clinic & clinic admin created successfully",
@@ -77,11 +115,11 @@ const addClinicWithAdmin = async (req, res) => {
 
 
 const deleteClinic = (req, res) => {
-    res.send("hello from the deleting particular clinic");
+  res.send("hello from the deleting particular clinic");
 }
 
 module.exports = {
-    addClinicWithAdmin ,
-    deleteClinic,
-    getAllClinics
+  addClinicWithAdmin,
+  deleteClinic,
+  getAllClinics
 }
