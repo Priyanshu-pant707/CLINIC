@@ -1,19 +1,39 @@
-import { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Calendar, Users, FileText, Shield, Stethoscope } from 'lucide-react';
+import { Activity, Calendar, Users, Shield, Stethoscope } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const [clinics, setClinics] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+
+  //  Fetch clinics (no authentication required)
+  useEffect(() => {
+    const fetchClinics = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/clinic');
+        const data = await res.json();
+        setClinics(data);
+      } catch (err) {
+        console.error('Error fetching clinics:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClinics();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -35,10 +55,11 @@ const Index = () => {
       </nav>
 
       <section className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-5xl font-bold text-foreground mb-6">
+    
+        <h1 className="text-6xl font-bold text-gray-700 text-foreground mb-6">
           Modern Clinic Management System
         </h1>
-        <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+        <p className="text-medium text-muted-foreground mb-8 max-w-2xl mx-auto">
           Streamline your healthcare operations with our comprehensive platform for managing appointments, 
           prescriptions, and patient care.
         </p>
@@ -52,6 +73,79 @@ const Index = () => {
         </div>
       </section>
 
+      {/*  New Section — Fetching data from localhost:5000/clinic */}
+     <section className="container mx-auto px-4 py-20 bg-gray-100 border shadow-lg flex flex-wrap flex-col">
+  <h2 className="text-4xl font-bold text-center mb-12 text-foreground">
+    🏥 Available Clinics
+  </h2>
+
+  {loading ? (
+    <p className="text-center text-muted-foreground animate-pulse">
+      Loading clinics...
+    </p>
+  ) : clinics.length === 0 ? (
+    <p className="text-center text-muted-foreground">No clinics found.</p>
+  ) : (
+    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      {clinics.map((clinic) => (
+        <Card
+          key={clinic._id}
+          className="group relative  border border-border/40 bg-card/60 backdrop-blur-md hover:border-primary/60 
+                     transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 rounded-2xl overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold text-primary group-hover:text-primary/90">
+                {clinic.name}
+              </CardTitle>
+              <span
+                className={`text-xs px-3 py-1 rounded-full font-medium ${
+                  clinic.status === "active"
+                    ? "bg-green-500/20 text-green-400"
+                    : "bg-red-500/20 text-red-400"
+                }`}
+              >
+                {clinic.status}
+              </span>
+            </div>
+            <CardDescription className="text-muted-foreground mt-1">
+              📍 {clinic.location}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              {clinic.description || "No description available"}
+            </p>
+
+            <div className="space-y-1 text-sm">
+              <p>
+                <strong className="text-foreground">👨‍⚕️ Doctors:</strong>{" "}
+                <span className="text-muted-foreground">
+                  {clinic.doctors.length}
+                </span>
+              </p>
+              <p>
+                <strong className="text-foreground">🧑‍🤝‍🧑 Patients:</strong>{" "}
+                <span className="text-muted-foreground">
+                  {clinic.patients.length}
+                </span>
+              </p>
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-4 italic">
+              Created on:{" "}
+              <span className="text-foreground">
+                {new Date(clinic.createdAt).toLocaleDateString()}
+              </span>
+            </p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )}
+</section>
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Features by Role</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -121,6 +215,8 @@ const Index = () => {
         </div>
       </section>
 
+
+
       <section className="bg-card border-y border-border py-16">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
@@ -141,4 +237,3 @@ const Index = () => {
 };
 
 export default Index;
-

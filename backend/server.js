@@ -4,6 +4,19 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
+//setup cors
+const cors = require('cors');
+app.use(cors());
+
+// khi se request lelo
+app.use(cors({
+  origin: '*',          // allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
 const addSuperAdmin = require("./models/superadmin");
 
 // Middleware
@@ -12,6 +25,7 @@ app.use(express.json());
 
 //dummy
 const userModel = require("./models/user");
+const clinicModel=require("./models/Clinic")
 
 //database connection
 connectDb();
@@ -62,6 +76,12 @@ app.get('/userinfo', async (req, res) => {
     const data = await userModel.find();
     res.send(data);
 
+})
+
+
+app.get('/clinic',async(req,res)=>{
+    const clinic=await clinicModel.find();
+    res.send(clinic);
 })
 
 app.listen(PORT, () => {
