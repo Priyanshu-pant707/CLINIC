@@ -32,4 +32,17 @@ router.post(
   superAdminController.addClinicWithAdmin
 );
 
+
+
+
+
+// find clinic by the id
+router.get(
+  "/clinics/:id",
+  verifyToken,
+  roleAuthenticator(["superadmin"]),
+  superAdminController.findClinicById
+);
+
+
 module.exports = router;

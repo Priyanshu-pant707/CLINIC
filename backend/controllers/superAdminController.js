@@ -151,19 +151,49 @@ const deleteClinic = async (req, res) => {
 
 
     return res.status(200).json({
-      message:"Clinic, its admins and doctors deleted successfully. Patients unlinked.",
+      message: "Clinic, its admins and doctors deleted successfully. Patients unlinked.",
     });
 
   } catch (err) {
-console.error("Error deleting clinic :",err);
-res.status(500).json({message:"Server error",
-  error:err.message
-});
+    console.error("Error deleting clinic :", err);
+    res.status(500).json({
+      message: "Server error",
+      error: err.message
+    });
   }
 };
+
+
+
+const findClinicById = async (req, res) => {
+  try {
+    const clinicId = req.params.id;
+    const clinic = await clinicModel.findById(clinicId);
+
+    if (!clinic) {
+      return res.status(404).json({
+        success: false,
+        message: "No clinic found !"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "clinic found ",
+      data: clinic
+    })
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message
+    })
+  }
+}
 
 module.exports = {
   addClinicWithAdmin,
   deleteClinic,
-  getAllClinics
+  getAllClinics,
+  findClinicById
 }
