@@ -4,6 +4,7 @@ const userModel = require("../models/user");
 
 const bcrypt = require("bcrypt");
 
+require("dotenv").config();
 
 // nodemailer functions
 
@@ -16,7 +17,6 @@ const sendMail = require("../utils/sendMail");
 
 const getAllClinics = async (req, res) => {
 
-  require("dotenv").config();
   // getting all the clinic details
   const allclinicInfo = await clinicModel.find();
 
@@ -114,9 +114,53 @@ const addClinicWithAdmin = async (req, res) => {
 
 
 
-const deleteClinic = (req, res) => {
-  res.send("hello from the deleting particular clinic");
-}
+const deleteClinic = async (req, res) => {
+  try {
+    const clinicId = req.params.id;
+
+    // clinic check kro , if exists or not
+    const clinic = await clinicModel.findById(clinicId);
+
+    // check if exists
+    if (!clinic) {
+      return res.status(404).json({
+        success: false,
+        message: "Sorry! clinic not found"
+      });
+    }
+
+
+    // delete all the clinic admins of this clinic , and they will be deleted as well as from the usermodel 
+
+    await userModel.deleteMany({ clinic: clinicId, role: "clinicadmin" });
+
+    // now same for the doctors
+
+    await userModel.deleteMany({ clinic: clinicId, role: "doctor" });
+
+
+    // now we cant delete the patient as he/she can get to the part of another clinic as well
+
+    await userModel.updateMany({ clinic: clinicId, role: "patient" },
+      { $unset: { clinic: "" } }
+    )
+
+    // now delete the clinic itself
+
+    await clinicModel.findByIdAndDelete(clinicId);
+
+
+    return res.status(200).json({
+      message:"Clinic, its admins and doctors deleted successfully. Patients unlinked.",
+    });
+
+  } catch (err) {
+console.error("Error deleting clinic :",err);
+res.status(500).json({message:"Server error",
+  error:err.message
+});
+  }
+};
 
 module.exports = {
   addClinicWithAdmin,
