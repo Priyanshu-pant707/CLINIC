@@ -70,7 +70,7 @@ export default function Login() {
             </Button>
           </form>
           
-          <div className="mt-6 text-center text-sm">
+          {/* <div className="mt-6 text-center text-sm">
             <p className="text-muted-foreground mb-2">Demo Accounts:</p>
             <div className="space-y-1 text-xs">
               <p>Super Admin: admin@clinic.com</p>
@@ -78,7 +78,7 @@ export default function Login() {
               <p>Doctor: sarah@healthclinic.com</p>
               <p>Patient: alice@email.com</p>
             </div>
-          </div>
+          </div> */}
 
           <div className="mt-4 text-center text-sm">
             <span className="text-muted-foreground">Don't have an account? </span>

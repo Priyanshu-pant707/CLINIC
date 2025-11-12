@@ -23,7 +23,7 @@ function DashboardRedirect() {
   
   switch (user.role) {
     case 'superadmin':
-      return <Navigate to="/super-admin" replace />;
+      return <Navigate to="/superadmin" replace />;
     case 'clinicadmin':
       return <Navigate to="/clinic-admin" replace />;
     case 'doctor':
@@ -49,7 +49,7 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardRedirect />} />
             
             <Route 
-              path="/super-admin" 
+              path="/superadmin" 
               element={
                 <ProtectedRoute allowedRoles={['superadmin']}>
                   <SuperAdminDashboard />

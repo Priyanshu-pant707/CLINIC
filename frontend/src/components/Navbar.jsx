@@ -15,10 +15,10 @@ export function Navbar() {
   const getDashboardLink = () => {
     if (!user) return '/';
     switch (user.role) {
-      case 'super_admin':
-        return '/super-admin';
-      case 'clinic_admin':
-        return '/clinic-admin';
+      case 'superadmin':
+        return '/superadmin';
+      case 'clinicadmin':
+        return '/clinicadmin';
       case 'doctor':
         return '/doctor';
       case 'patient':
