@@ -3,6 +3,7 @@ const router = express.Router();
 
 const verifyToken= require("../middlewares/authMiddleware")
 const appointmentControllers = require('../controllers/appointmentControllers');
+const roleAuthenticator = require("../middlewares/roleMiddleware");
 
 
 
@@ -18,6 +19,7 @@ router.post('/',
 
 router.get('/', 
     verifyToken,
+    roleAuthenticator(['clinicadmin']),
     appointmentControllers.getAllAppointments);
 
 

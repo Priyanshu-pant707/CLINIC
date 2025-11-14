@@ -1,9 +1,10 @@
 const clinicModel = require("../models/Clinic");
 const bcrypt = require("bcrypt");
 const userModel = require("../models/user")
+const appointmentModel = require("../models/appointment");
 const addDoctor = async (req, res) => {
     try {
-        const { name, email, password,specialization,experience,qualifications } = req.body;
+        const { name, email, password, specialization, experience, qualifications } = req.body;
         const clinicAdminId = req.user.id;
 
         const clinic = await clinicModel.findOne({ clinicAdmins: clinicAdminId });
@@ -20,7 +21,7 @@ const addDoctor = async (req, res) => {
             password: hashedPassword,
             role: "doctor",
             clinic: clinic._id,
-            doctorInfo:{
+            doctorInfo: {
                 specialization,
                 experience,
                 qualifications,
@@ -44,7 +45,7 @@ const addDoctor = async (req, res) => {
 
 const addPatient = async (req, res) => {
     try {
-        const { name, email, password,age,gender,contact } = req.body;
+        const { name, email, password, age, gender, contact } = req.body;
         const clinicAdminId = req.user.id;
 
         const clinic = await clinicModel.findOne({ clinicAdmins: clinicAdminId });
@@ -63,7 +64,7 @@ const addPatient = async (req, res) => {
             password: hashedPassword,
             role: "patient",
             clinic: clinic._id,
-            patientInfo:{
+            patientInfo: {
                 age,
                 gender,
                 contact,
@@ -106,26 +107,133 @@ const showDoctor = async (req, res) => {
     }
 }
 
-const showPatient = async(req, res) => {
-try{
-    const clinicId=req.user.clinicId;
-    const clinic=await clinicModel.findById(clinicId).populate("patients","name email role patientInfo");
+const showPatient = async (req, res) => {
+    try {
+        const clinicId = req.user.clinicId;
+        const clinic = await clinicModel.findById(clinicId).populate("patients", "name email role patientInfo");
 
-    if(!clinic){
-        return res.status(404).json({
-            message:"Clinic not found"
+        if (!clinic) {
+            return res.status(404).json({
+                message: "Clinic not found"
+            });
+        }
+
+        return res.status(200).json({
+            message: "List of all patients in  this clinic",
+            patients: clinic.patients,
         });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching patients", error: error.message });
     }
-
-    return res.status(200).json({
-        message:"List of all patients in  this clinic",
-        patients:clinic.patients,
-    });
-}catch(error){
-res.status(500).json({message:"Error fetching patients",error:error.message});
-}
 }
 
+
+
+
+// clinic admin - can create appointment ofr any patient and doctor
+
+const adminCreateAppointment = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const clinicId = req.user.clinicId;
+        const adminRole = req.user.role;
+
+        // only clinic admin can access this
+
+        const findAdmin =await userModel.findById(adminId);
+
+        if (!findAdmin || findAdmin.role!=="clinicadmin") {
+            return res.status(403).json({
+                success: false,
+                message: "Only clinic admin can create appointments"
+            });
+        }
+
+
+        const doctorId = req.params.id;
+
+        // hum ek form denge jisme ki patient ki list hogi ,  from there we can access the patient id ,date,time and notes will provide a text holder , in future an ai response generator.
+        const { patientId, date, time, notes } = req.body;
+
+        // validate the doctor
+
+        const doctor = await userModel.findById(doctorId);
+
+        if (!doctor || doctor.role !== "doctor") {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor not found"
+            });
+        }
+
+
+        // validate the patient hai ki nhi
+
+        const patient = await userModel.findById(patientId);
+        if (!patient || patient.role !== "patient") {
+            return res.status(404).json({
+                success: false,
+                message: "Patient not found"
+            });
+        }
+
+
+        // formality checking - be in safer side
+
+        if (String(doctor.clinic) !== String(clinicId)) {
+            return res.status(400).json({
+                success: false,
+                message: "This doctor is not part of your clinic"
+            });
+        }
+
+        //  ab double booking bhi check kr lete h
+
+        const existing = await appointmentModel.findOne({
+            doctorId,
+            date,
+            time
+        });
+
+
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                message: "This time slot is already booked"
+            });
+        }
+
+
+        // 5. Create appointment 
+
+        const appointment = await appointmentModel.create({
+            clinicId,
+            doctorId,
+            patientId,
+            date,
+            time,
+            notes,
+            status: "approved"  // jb admin bna rha h toh auto approved hogi....
+        })
+
+
+        return res.status(201).json({
+            success: true,
+            message: "Appointment created successfully",
+            data: appointment
+        })
+
+
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "internal server error",
+            error: err.message
+        });
+
+    }
+};
 
 
 
@@ -135,5 +243,7 @@ module.exports = {
     addDoctor,
     addPatient,
     showDoctor,
-    showPatient
+    showPatient,
+    adminCreateAppointment
+
 }

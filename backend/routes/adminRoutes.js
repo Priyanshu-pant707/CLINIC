@@ -3,6 +3,7 @@ const router = express.Router();
 
 // controller
 const adminController = require("../controllers/adminController");
+const appointmentController=require("../controllers/appointmentControllers")
 
 // middlewares
 const verifyToken = require("../middlewares/authMiddleware");
@@ -28,7 +29,7 @@ router.post(
 router.get(
   "/doctors",
   verifyToken,
-  roleAuthenticator(["clinicadmin","patient"]),
+  roleAuthenticator(["clinicadmin", "patient"]),
   adminController.showDoctor
 );
 
@@ -39,5 +40,26 @@ router.get(
   roleAuthenticator(["clinicadmin"]),
   adminController.showPatient
 );
+
+
+
+// admin can also create the appointment 
+router.post(
+  "/createAppointment/:id",
+  verifyToken,
+  roleAuthenticator(["clinicadmin"]),
+  adminController.adminCreateAppointment
+)
+
+
+
+// show all appointment related to the clinic
+
+router.get("/getAppointments",
+  verifyToken,
+  roleAuthenticator(["clinicadmin"]),
+  appointmentController.getAllAppointments
+  
+)
 
 module.exports = router;

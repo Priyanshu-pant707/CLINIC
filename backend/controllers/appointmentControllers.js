@@ -68,35 +68,37 @@ const createAppointment = async (req, res) => {
 
 
 
-// Get All Appointments
 const getAllAppointments = async (req, res) => {
   try {
+    const clinicId = req.user.clinicId; // Clinic Admin ke token se aa raha h
+
     const allAppointments = await appointmentModel
-      .find()
-      .populate("doctorId", "name email")
-      .populate("patientId", "name email")
+      .find({  clinicId }) // FIND appointments by clinicId
+      .populate("doctorId", "name email specialization")
+      .populate("patientId", "name email age")
       .populate("clinicId", "clinicName location");
 
     if (!allAppointments || allAppointments.length === 0) {
       return res.status(404).json({
+        success: false,
         message: "No appointments found!",
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Appointments retrieved successfully",
       data: allAppointments,
     });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal server error",
     });
   }
 };
-
 
 
 //  Update Appointment Status (e.g., approve, reject, complete)
