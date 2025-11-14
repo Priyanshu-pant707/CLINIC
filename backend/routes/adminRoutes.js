@@ -28,7 +28,7 @@ router.post(
 router.get(
   "/doctors",
   verifyToken,
-  roleAuthenticator(["clinicadmin"]),
+  roleAuthenticator(["clinicadmin","patient"]),
   adminController.showDoctor
 );
 

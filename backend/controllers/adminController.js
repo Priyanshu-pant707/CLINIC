@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const userModel = require("../models/user")
 const addDoctor = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password,specialization,experience,qualifications } = req.body;
         const clinicAdminId = req.user.id;
 
         const clinic = await clinicModel.findOne({ clinicAdmins: clinicAdminId });
@@ -19,7 +19,12 @@ const addDoctor = async (req, res) => {
             email,
             password: hashedPassword,
             role: "doctor",
-            clinic: clinic._id
+            clinic: clinic._id,
+            doctorInfo:{
+                specialization,
+                experience,
+                qualifications,
+            }
         });
 
 
@@ -39,7 +44,7 @@ const addDoctor = async (req, res) => {
 
 const addPatient = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password,age,gender,contact } = req.body;
         const clinicAdminId = req.user.id;
 
         const clinic = await clinicModel.findOne({ clinicAdmins: clinicAdminId });
@@ -57,7 +62,12 @@ const addPatient = async (req, res) => {
             email,
             password: hashedPassword,
             role: "patient",
-            clinic: clinic._id
+            clinic: clinic._id,
+            patientInfo:{
+                age,
+                gender,
+                contact,
+            }
         });
 
         clinic.patients.push(patient._id);
@@ -78,7 +88,7 @@ const showDoctor = async (req, res) => {
 
         // find the clinic with the doctor details
 
-        const clinic = await clinicModel.findById(clinicId).populate("doctors", "name email role");
+        const clinic = await clinicModel.findById(clinicId).populate("doctors", "name email role doctorInfo");
 
         if (!clinic) {
             return res.status(404).json({
@@ -99,7 +109,7 @@ const showDoctor = async (req, res) => {
 const showPatient = async(req, res) => {
 try{
     const clinicId=req.user.clinicId;
-    const clinic=await clinicModel.findById(clinicId).populate("patients","name email role");
+    const clinic=await clinicModel.findById(clinicId).populate("patients","name email role patientInfo");
 
     if(!clinic){
         return res.status(404).json({

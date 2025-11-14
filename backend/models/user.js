@@ -21,6 +21,20 @@ const userSchema = new mongoose.Schema({
     clinic: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Clinic"
+    },
+
+    // adding fields for the doctor 
+     doctorInfo: {
+        specialization: String,
+        experience: Number,
+        qualifications:String,
+    },
+
+    // adding fields for the patient
+     patientInfo: {
+        age: Number,
+        gender: String,
+        contact:Number,
     }
 });
 
