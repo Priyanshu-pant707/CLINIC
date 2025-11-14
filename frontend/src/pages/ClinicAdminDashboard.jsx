@@ -33,8 +33,10 @@ export default function ClinicAdminDashboard() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="bg-zinc-100 dark:bg-zinc-700/40 
+  transition-all duration-300 ease-in-out 
+  hover:shadow-xl hover:-translate-y-1">
+            <CardHeader className=" flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Doctors</CardTitle>
               <Stethoscope className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -42,7 +44,9 @@ export default function ClinicAdminDashboard() {
               <div className="text-2xl font-bold">{doctors.length}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-blue-100 dark:bg-blue-700/40 
+  transition-all duration-300 ease-in-out 
+  hover:shadow-xl hover:-translate-y-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -50,8 +54,10 @@ export default function ClinicAdminDashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{patients.length}</div>
             </CardContent>
-          </Card>
-          <Card>
+          </Card >
+          <Card className="bg-green-200 dark:bg-green-700/40 
+  transition-all duration-300 ease-in-out 
+  hover:shadow-xl hover:-translate-y-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Appointments Today</CardTitle>
               <CalendarCheck className="h-4 w-4 text-muted-foreground" />
@@ -60,7 +66,9 @@ export default function ClinicAdminDashboard() {
               <div className="text-2xl font-bold">3</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-orange-200 dark:bg-orange-700/40 
+  transition-all duration-300 ease-in-out 
+  hover:shadow-xl hover:-translate-y-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
