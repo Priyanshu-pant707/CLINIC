@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,11 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, UserPlus, Stethoscope, CalendarCheck } from 'lucide-react';
 import { mockDoctors, mockPatients, mockAppointments } from '@/lib/mockData';
+import { toast } from '@/hooks/use-toast';
 
 export default function ClinicAdminDashboard() {
   const [appointments] = useState(mockAppointments);
-  const [doctors] = useState(mockDoctors);
-  const [patients] = useState(mockPatients);
+  const [doctors, setDoctors] = useState([]);
+  const [patients, setPatients] = useState([]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -22,6 +23,56 @@ export default function ClinicAdminDashboard() {
       default: return 'bg-secondary text-secondary-foreground';
     }
   };
+
+
+  const API_DOCTORS = 'http://localhost:5000/api/clinicadmin/doctors';
+  const API_PATIENTS = 'http://localhost:5000/api/clinicadmin/patients';
+  useEffect(() => {
+    const fetchData = async () => {
+
+      try {
+        const token = localStorage.getItem('token');
+        const doctorRes = await fetch(API_DOCTORS, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+
+        if (!doctorRes.ok) {
+          throw new Error('Failed to fetch doctors');
+        }
+
+        const doctorData = await doctorRes.json();
+        setDoctors(doctorData.doctors);
+
+
+        const patientRes = await fetch(API_PATIENTS, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!patientRes.ok) {
+          throw new Error('Failed to fetch clinics');
+        }
+
+        const patientData = await patientRes.json();
+        setPatients(patientData.patients);
+
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast({ title: 'Error', description: 'Failed to load data', variant: 'destructive' });
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,10 +197,13 @@ export default function ClinicAdminDashboard() {
                   </TableHeader>
                   <TableBody>
                     {doctors.map((doctor) => (
-                      <TableRow key={doctor.id}>
+                      <TableRow key={doctor._id}>
                         <TableCell className="font-medium">{doctor.name}</TableCell>
-                        <TableCell>{doctor.specialization}</TableCell>
-                        <TableCell>{doctor.qualifications}</TableCell>
+
+                        <TableCell>{doctor.doctorInfo?.specialization || "N/A"}</TableCell>
+
+                        <TableCell>{doctor.doctorInfo?.qualifications || "N/A"}</TableCell>
+
                         <TableCell>
                           <div className="flex gap-2">
                             <Button variant="outline" size="sm">Edit</Button>
@@ -158,6 +212,7 @@ export default function ClinicAdminDashboard() {
                         </TableCell>
                       </TableRow>
                     ))}
+
                   </TableBody>
                 </Table>
               </CardContent>
@@ -183,7 +238,6 @@ export default function ClinicAdminDashboard() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead>Date of Birth</TableHead>
                       <TableHead>Gender</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Actions</TableHead>
@@ -191,11 +245,13 @@ export default function ClinicAdminDashboard() {
                   </TableHeader>
                   <TableBody>
                     {patients.map((patient) => (
-                      <TableRow key={patient.id}>
+                      <TableRow key={patient._id}>
                         <TableCell className="font-medium">{patient.name}</TableCell>
-                        <TableCell>{new Date(patient.dateOfBirth).toLocaleDateString()}</TableCell>
-                        <TableCell>{patient.gender}</TableCell>
-                        <TableCell>{patient.contact}</TableCell>
+
+                        <TableCell>{patient.patientInfo?.gender || "N/A"}</TableCell>
+
+                        <TableCell>{patient.patientInfo?.contact || "N/A"}</TableCell>
+
                         <TableCell>
                           <div className="flex gap-2">
                             <Button variant="outline" size="sm">View</Button>
@@ -204,6 +260,7 @@ export default function ClinicAdminDashboard() {
                         </TableCell>
                       </TableRow>
                     ))}
+
                   </TableBody>
                 </Table>
               </CardContent>
