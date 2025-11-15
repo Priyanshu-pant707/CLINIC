@@ -1,4 +1,4 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,6 +17,8 @@ import { toast } from '@/hooks/use-toast';
 export default function DoctorDashboard() {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
+  const [patients, setPatients] = useState([]);
+
   const [prescriptions] = useState(mockPrescriptions.filter(p => p.doctorName === user?.name));
 
   const todayAppointments = appointments.filter(a => {
@@ -35,7 +37,7 @@ export default function DoctorDashboard() {
 
 
 
-  // const API_PATIENTS = 'http://localhost:5000/api/clinicadmin/patients';
+  const API_PATIENTS = 'http://localhost:5000/api/doctor/patients';
   const API_APPOINTMENTS = 'http://localhost:5000/api/doctor/appointment';
 
   useEffect(() => {
@@ -43,20 +45,20 @@ export default function DoctorDashboard() {
 
       try {
         const token = localStorage.getItem('token');
-        // const patientRes = await fetch(API_PATIENTS, {
-        //   method: 'get',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'Authorization': `Bearer ${token}`,
-        //   },
-        // });
+        const patientRes = await fetch(API_PATIENTS, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-        // if (!patientRes.ok) {
-        //   throw new Error('Failed to fetch clinics');
-        // }
+        if (!patientRes.ok) {
+          throw new Error('Failed to fetch clinics');
+        }
 
-        // const patientData = await patientRes.json();
-        // setPatients(patientData.patients);
+        const patientData = await patientRes.json();
+        setPatients(patientData.patients);
 
         const appointmentRes = await fetch(API_APPOINTMENTS, {
           method: 'get',
@@ -187,47 +189,179 @@ export default function DoctorDashboard() {
                 </div>
               </CardHeader>
 
+              <Tabs defaultValue="upcoming" className="space-y-6 ml-8">
+                <TabsList>
+                  <TabsTrigger value="upcoming">upcoming</TabsTrigger>
+                  <TabsTrigger value="completed">completed</TabsTrigger>
+                  <TabsTrigger value="cancelled">cancelled</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="upcoming">
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Patient</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Reason</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {appointments.filter((apt) => apt.status !== "completed" && apt.status !== "cancelled")
+                          .map((apt) => (
+                            <TableRow key={apt._id}>
+                              <TableCell className="font-medium">{apt.patientId.name}</TableCell>
+                              <TableCell>{new Date(apt.date).toLocaleString()}</TableCell>
+                              <TableCell><Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm">View</Button>
+
+                                  </DialogTrigger>
+
+                                  <DialogContent className="max-w-md rounded-xl">
+                                    <DialogHeader>
+                                      <DialogTitle className="text-xl font-bold text-yellow-700">
+                                        Notes
+                                      </DialogTitle>
+                                    </DialogHeader>
+
+                                    <div className="mt-4 p-4 bg-yellow-100 rounded-lg shadow-inner border-l-4 border-yellow-500">
+                                      {apt.notes ? (
+                                        <p className="text-yellow-900 whitespace-pre-wrap font-medium">
+                                          {apt.notes}
+                                        </p>
+                                      ) : (
+                                        <p className="text-yellow-600 italic">No notes available.</p>
+                                      )}
+                                    </div>
+                                  </DialogContent>
+                                </Dialog></TableCell>
+                              <TableCell>
+                                <Badge variant={apt.status === 'approved' ? 'default' : 'secondary'}>
+                                  {apt.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {apt.status === 'pending' ? (
+                                  <div className="flex gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => handleAcceptAppointment(apt.id)}>
+                                      Accept
+                                    </Button>
+                                    <Button variant="outline" size="sm">Reject</Button>
+                                  </div>
+                                ) : (
+                                  <Button variant="outline" size="sm">View</Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </TabsContent>
+                <TabsContent value="completed">
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Patient</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Reason</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {appointments.filter((apt) => apt.status === "completed")
+                          .map((apt) => (
+                            <TableRow key={apt._id}>
+                              <TableCell className="font-medium">{apt.patientId.name}</TableCell>
+                              <TableCell>{new Date(apt.date).toLocaleString()}</TableCell>
+                              <TableCell>
+
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm">View</Button>
+
+                                  </DialogTrigger>
+
+                                  <DialogContent className="max-w-md rounded-xl">
+                                    <DialogHeader>
+                                      <DialogTitle className="text-xl font-bold text-yellow-700">
+                                        Notes
+                                      </DialogTitle>
+                                    </DialogHeader>
+
+                                    <div className="mt-4 p-4 bg-yellow-100 rounded-lg shadow-inner border-l-4 border-yellow-500">
+                                      {apt.notes ? (
+                                        <p className="text-yellow-900 whitespace-pre-wrap font-medium">
+                                          {apt.notes}
+                                        </p>
+                                      ) : (
+                                        <p className="text-yellow-600 italic">No notes available.</p>
+                                      )}
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
 
 
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Patient</TableHead>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Reason</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {appointments.map((apt) => (
-                      <TableRow key={apt._id}>
-                        <TableCell className="font-medium">{apt.patientId.name}</TableCell>
-                        <TableCell>{new Date(apt.date).toLocaleString()}</TableCell>
-                        <TableCell>{"veiw"}</TableCell>
-                        <TableCell>
-                          <Badge variant={apt.status === 'approved' ? 'default' : 'secondary'}>
-                            {apt.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {apt.status === 'pending' ? (
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="sm" onClick={() => handleAcceptAppointment(apt.id)}>
-                                Accept
-                              </Button>
-                              <Button variant="outline" size="sm">Reject</Button>
-                            </div>
-                          ) : (
-                            <Button variant="outline" size="sm">View</Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
+
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={apt.status === 'approved' ? 'default' : 'secondary'}>
+                                  {apt.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {apt.status === 'pending' ? (
+                                  <div className="flex gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => handleAcceptAppointment(apt.id)}>
+                                      Accept
+                                    </Button>
+                                    <Button variant="outline" size="sm">Reject</Button>
+                                  </div>
+                                ) : (
+                                  <Button variant="outline" size="sm">View</Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </TabsContent>
+                <TabsContent value="cancelled">
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Patient</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Reason</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {appointments.filter((apt) => apt.status === "cancelled")
+                          .map((apt) => (
+                            <TableRow key={apt._id}>
+                              <TableCell className="font-medium">{apt.patientId.name}</TableCell>
+                              <TableCell>{new Date(apt.date).toLocaleString()}</TableCell>
+                              <TableCell><Button variant="outline" size="sm">View</Button></TableCell>
+                              <TableCell>
+                                <Badge variant={apt.status === 'approved' ? 'default' : 'secondary'}>
+                                  {apt.status}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </TabsContent>
+              </Tabs>
             </Card>
           </TabsContent>
 
@@ -277,25 +411,21 @@ export default function DoctorDashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Patient</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Medicines</TableHead>
-                      <TableHead>Follow-up</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>Patient Name</TableHead>
+                      <TableHead>Age</TableHead>
+                      <TableHead>Gender</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Contact</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Patients.map((patient) => (
+                    {patients.map((patient) => (
                       <TableRow key={patient._id}>
-                        <TableCell className="font-medium">{patient.patientName}</TableCell>
-                        <TableCell>{new Date(patient.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>{patient.medicines.length} medicines</TableCell>
-                        <TableCell>
-                          {patient.followUpDate ? new Date(patient.followUpDate).toLocaleDateString() : 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">View Details</Button>
-                        </TableCell>
+                        <TableCell className="font-medium">{patient.name}</TableCell>
+                        <TableCell>{patient.patientInfo.age}</TableCell>
+                        <TableCell>{patient.patientInfo.gender}</TableCell>
+                        <TableCell>{patient.email}</TableCell>
+                        <TableCell>{patient.patientInfo.contact}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
