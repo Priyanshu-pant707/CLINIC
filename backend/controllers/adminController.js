@@ -2,6 +2,7 @@ const clinicModel = require("../models/Clinic");
 const bcrypt = require("bcrypt");
 const userModel = require("../models/user")
 const appointmentModel = require("../models/appointment");
+const sendMail = require("../utils/sendMail");
 const addDoctor = async (req, res) => {
     try {
         const { name, email, password, specialization, experience, qualifications } = req.body;
@@ -216,6 +217,46 @@ const adminCreateAppointment = async (req, res) => {
             status: "approved"  // jb admin bna rha h toh auto approved hogi....
         })
 
+
+
+        // doctor ke liye mail 
+      const doctorMailHTML = `
+            <div style="font-family: Arial;">
+                <h2>New Appointment Assigned</h2>
+                <p>Dear Dr. ${doctor.name},</p>
+                <p>You have a new appointment scheduled.</p>
+                <ul>
+                    <li><b>Patient:</b> ${patient.name}</li>
+                    <li><b>Date:</b> ${date}</li>
+                    <li><b>Time:</b> ${time}</li>
+                    <li><b>Notes:</b> ${notes || "N/A"}</li>
+                </ul>
+                <br>
+                <p>Regards,<br>MultiClinic Team</p>
+            </div>
+        `;
+// aur ab  patient ke liye mail 
+        const patientMailHTML = `
+            <div style="font-family: Arial;">
+                <h2>Appointment Confirmed</h2>
+                <p>Dear ${patient.name},</p>
+                <p>Your appointment has been scheduled with:</p>
+                <ul>
+                    <li><b>Doctor:</b> Dr. ${doctor.name}</li>
+                    <li><b>Date:</b> ${date}</li>
+                    <li><b>Time:</b> ${time}</li>
+                    <li><b>Notes:</b> ${notes || "N/A"}</li>
+                </ul>
+                <br>
+                <p>Regards,<br>MultiClinic Team</p>
+            </div>
+        `;
+
+
+        // send mail to doctor and the pateint
+
+        await sendMail(doctor.email,"New Appointment Assigned",doctorMailHTML);
+        await sendMail(patient.email,"Your Appointment is Confirmed",patientMailHTML);
 
         return res.status(201).json({
             success: true,

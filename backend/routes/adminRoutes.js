@@ -62,4 +62,7 @@ router.get("/getAppointments",
   
 )
 
+
+
+
 module.exports = router;

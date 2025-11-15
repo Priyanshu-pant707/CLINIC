@@ -102,40 +102,79 @@ const getAllAppointments = async (req, res) => {
 
 
 //  Update Appointment Status (e.g., approve, reject, complete)
-const updateAppointmentStatus = async (req, res) => {
-  try {
-  
-    const appointmentId=req.params.id; // ye dynamic routes se lelenge.
-    const {status}=req.body;
 
-    const updated =await appointmentModel.findByIdAndUpdate(
-        appointmentId,
-        {status},
-        {new:true}
-    );
+const updateAppointmentStatus = async (req,res)=>{
+  try{
+    const userId=req.user.id;    // jo routes ko hit karega fir token se lelenge
+    const userRole = req.user.role;  // from token
+    const clinicId=req.user.clinicId;   // from token
+    const appointmentId=req.params.id;   // from the endpoint dynamic routing
 
-    if(!updated){
-        return res.status(404).json({
-            success:false,
-            message:"Appointment not found",
-        });
+    // only doctor and clinic admin can update the appointments
+
+    if(userRole!=="doctor" && userRole !=="clinicadmin"){
+      return res.status(403).json({
+        success:false,
+        message:"Only the clinic doctor and clinic admin can update the appointment"
+      });
     }
 
-res.status(200).json({
-    success:true,
-    message: "Appointment status updated successfully",
-    data:updated,
-})
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
+    // fetch the appointment
+
+    const appointment = await appointmentModel.findById(appointmentId);
+    if(!appointment){
+      return res.status(404).json({
+        success:false,
+        message:"Appointment not found",
+      });
+    }
+
+
+    // ensure appointment belongs to same the clinic
+
+    if(String(appointment.clinicId)!==String(clinicId)){
+      return res.status(403).json({
+        success:false,
+        message:"You are not authorized to update this appointment"
+      });
+    }
+
+
+
+    // if doctor - khali apne se related appointments ko update krre.
+     if(userRole ==="doctor"){
+      if(String(appointment.doctorId)!==String(userId)){
+        return res.status(403).json({
+          success:false,
+          message:"Doctors can update only their own appointments"
+        });
+      }
+     }
+ 
+
+     // now at last update the appointment
+const {status}= req.body;
+     const updated= await appointmentModel.findByIdAndUpdate(
+      appointmentId,{status},{new:true});
+
+
+     return res.status(200).json({
+      success:true,
+      message:"Appointment status updated successfully",
+      data:updated,
+     });
+
+
+
+  }catch(err){
+    return res.status(500).json({
+      success:false,
+      message:"Internal server error",
+      error: err.message,
     });
   }
-};
-
+}
 
 
 // for patient

@@ -27,6 +27,7 @@ router.get('/',
 
 router.patch('/:id',
     verifyToken,
+    roleAuthenticator(["doctor","clinicadmin"]),
      appointmentControllers.updateAppointmentStatus);
 
 
