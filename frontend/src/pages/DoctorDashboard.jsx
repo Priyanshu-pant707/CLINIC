@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,7 +16,7 @@ import { toast } from '@/hooks/use-toast';
 
 export default function DoctorDashboard() {
   const { user } = useAuth();
-  const [appointments] = useState(mockAppointments.filter(a => a.doctorName === user?.name));
+  const [appointments, setAppointments] = useState([]);
   const [prescriptions] = useState(mockPrescriptions.filter(p => p.doctorName === user?.name));
 
   const todayAppointments = appointments.filter(a => {
@@ -33,6 +33,56 @@ export default function DoctorDashboard() {
     toast({ title: 'Prescription created', description: 'Prescription saved successfully' });
   };
 
+
+
+  // const API_PATIENTS = 'http://localhost:5000/api/clinicadmin/patients';
+  const API_APPOINTMENTS = 'http://localhost:5000/api/doctor/appointment';
+
+  useEffect(() => {
+    const fetchData = async () => {
+
+      try {
+        const token = localStorage.getItem('token');
+        // const patientRes = await fetch(API_PATIENTS, {
+        //   method: 'get',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'Authorization': `Bearer ${token}`,
+        //   },
+        // });
+
+        // if (!patientRes.ok) {
+        //   throw new Error('Failed to fetch clinics');
+        // }
+
+        // const patientData = await patientRes.json();
+        // setPatients(patientData.patients);
+
+        const appointmentRes = await fetch(API_APPOINTMENTS, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+
+        if (!appointmentRes.ok) {
+          throw new Error('Failed to fetch appointments');
+        }
+
+        const appointmentData = await appointmentRes.json();
+        setAppointments(appointmentData.data);
+
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast({ title: 'Error', description: 'Failed to load appointments', variant: 'destructive' });
+      }
+    };
+
+    fetchData();
+  }, []);
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -78,6 +128,7 @@ export default function DoctorDashboard() {
           <TabsList>
             <TabsTrigger value="schedule">My Schedule</TabsTrigger>
             <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+            <TabsTrigger value="patients">Patients</TabsTrigger>
           </TabsList>
 
           <TabsContent value="schedule">
@@ -135,6 +186,9 @@ export default function DoctorDashboard() {
                   </Dialog>
                 </div>
               </CardHeader>
+
+
+
               <CardContent>
                 <Table>
                   <TableHeader>
@@ -148,12 +202,12 @@ export default function DoctorDashboard() {
                   </TableHeader>
                   <TableBody>
                     {appointments.map((apt) => (
-                      <TableRow key={apt.id}>
-                        <TableCell className="font-medium">{apt.patientName}</TableCell>
-                        <TableCell>{new Date(apt.datetime).toLocaleString()}</TableCell>
-                        <TableCell>{apt.reason}</TableCell>
+                      <TableRow key={apt._id}>
+                        <TableCell className="font-medium">{apt.patientId.name}</TableCell>
+                        <TableCell>{new Date(apt.date).toLocaleString()}</TableCell>
+                        <TableCell>{"veiw"}</TableCell>
                         <TableCell>
-                          <Badge variant={apt.status === 'confirmed' ? 'default' : 'secondary'}>
+                          <Badge variant={apt.status === 'approved' ? 'default' : 'secondary'}>
                             {apt.status}
                           </Badge>
                         </TableCell>
@@ -202,6 +256,42 @@ export default function DoctorDashboard() {
                         <TableCell>{presc.medicines.length} medicines</TableCell>
                         <TableCell>
                           {presc.followUpDate ? new Date(presc.followUpDate).toLocaleDateString() : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="outline" size="sm">View Details</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="patients">
+            <Card>
+              <CardHeader>
+                <CardTitle>Patients</CardTitle>
+                <CardDescription>View all Patients </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Patient</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Medicines</TableHead>
+                      <TableHead>Follow-up</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Patients.map((patient) => (
+                      <TableRow key={patient._id}>
+                        <TableCell className="font-medium">{patient.patientName}</TableCell>
+                        <TableCell>{new Date(patient.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>{patient.medicines.length} medicines</TableCell>
+                        <TableCell>
+                          {patient.followUpDate ? new Date(patient.followUpDate).toLocaleDateString() : 'N/A'}
                         </TableCell>
                         <TableCell>
                           <Button variant="outline" size="sm">View Details</Button>
