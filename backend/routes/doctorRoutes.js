@@ -29,6 +29,12 @@ router.get('/patients',
     doctorController.showAllPatients);
 
 
+    // doctor appni de gayi prescriptions ko bhi dekh skta h
+    router.get('/prescriptions',
+    verifyToken,
+    roleAuthenticator(['doctor']),
+    prescriptionController.getPrescriptionByDoctor);
+
 
 // one function will bemore which updates the appointments.
 

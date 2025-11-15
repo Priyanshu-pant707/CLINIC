@@ -1,85 +1,151 @@
-const prescriptionModel =require("../models/prescription");
-const appointmentModel=require("../models/appointment");
+const prescriptionModel = require("../models/prescription");
+const appointmentModel = require("../models/appointment");
 
 
 
 // create a new prescription
 
 // for doctor
-const createPrescription =async(req,res)=>{
-    try{
-        const {diagnosis,medicines,notes}=req.body;
-        const appointmentId=req.params.id;
-        const doctorId=req.user.id;
-        const appointment= await appointmentModel.findById(appointmentId);
+const createPrescription = async (req, res) => {
+    try {
+        const { diagnosis, medicines, advice } = req.body;
+        const appointmentId = req.params.id;
+        const doctorId = req.user.id;
 
-        if(!appointment){
-            return res.status(404).json({
-                message:"Appointment not found"
-            })
+        const appointment = await appointmentModel.findById(appointmentId);
+
+        if (!appointment) {
+            return res.status(404).json({ message: "Appointment not found" });
         }
 
+        // doctor access check
+        if (appointment.doctorId.toString() !== doctorId) {
+            return res.status(403).json({
+                success: false,
+                message: "Not allowed to write prescription for this appointment",
+            });
+        }
 
-        const prescription=await prescriptionModel.create({
+        // Already prescription exists? same prescription do bar thodi nhi denge
+        const exists = await prescriptionModel.findOne({ appointmentId });
+        if (exists) {
+            return res.status(400).json({
+                success: false,
+                message: "Prescription already exists for this appointment",
+            });
+        }
+
+        // Medicines validation -  hai ki nhi 
+        if (!medicines || medicines.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Medicines list is required",
+            });
+        }
+
+        const prescription = await prescriptionModel.create({
             appointmentId,
             doctorId,
-            patientId:appointment.patientId,
-            clinicId:appointment.clinicId   ,
+            patientId: appointment.patientId,
+            clinicId: appointment.clinicId,
             diagnosis,
             medicines,
-            notes
+            advice,
         });
 
-        // linking it to the appointment
-
+        // link to appointment
         appointment.prescriptions.push(prescription._id);
+        // yhi se hum jo h vo appointment ka status update kr denge then re render frontend se hojyega
+        appointment.status = "completed";
         await appointment.save();
 
-
-        res.status(201).json({
-            success:true,
-            message:"Prescription added successfully",
-            data:prescription
+        return res.status(201).json({
+            success: true,
+            message: "Prescription added successfully",
+            data: prescription,
         });
-    }catch(err){
+
+    } catch (err) {
         console.error("Prescription creation error:", err);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: err.message,
-    });
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: err.message,
+        });
     }
 };
 
 
 
-// get prescription by patient (for old records)
+const getPrescriptionByDoctor = async (req, res) => {
+    try {
+        const doctorId = req.user.id; // jo bhi h token se lelenge
+        const prescriptions = await prescriptionModel
+            .find({ doctorId })
+            .populate("patientId", "name email")
+            .populate("appointmentId", "date time status")
+            .populate("clinicId", "clinicName location");
 
-
-const getPrescriptionByPatient =async(req,res)=>{
-    try{
-        const  patientId= req.user.id;
-        const prescriptions=await prescriptionModel.find({patientId})
-        .populate("doctorId","name email")
-        . populate("clinicId","name location")
-        .populate("appointmentId","date time");
-
-        if(prescriptions.length==0){
-            return res.status(404).json({message:"No prescription found"})
+        if (!prescriptions.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No prescriptions found for this doctor",
+            });
         }
 
-    res.status(200).json({
-        success:true,
-        data:prescriptions
-    });
-    }catch(err){
+        return res.status(200).json({
+            success: true,
+            data: prescriptions,
+        });
 
+    } catch (err) {
+        console.error("Get doctor prescriptions error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: err.message,
+        });
     }
-}
+};
+
+
+
+
+
+
+// get prescription by patient (for old records)
+const getPrescriptionByPatient = async (req, res) => {
+    try {
+        const patientId = req.user.id;
+
+        const prescriptions = await prescriptionModel
+            .find({ patientId })
+            .populate("doctorId", "name email")
+            .populate("clinicId", "clinicName location")
+            .populate("appointmentId", "date time status");
+
+        if (!prescriptions.length) {
+            return res.status(404).json({ message: "No prescriptions found" });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: prescriptions,
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: err.message,
+        });
+    }
+};
 
 
 
 module.exports = {
     createPrescription,
-    getPrescriptionByPatient
+    getPrescriptionByPatient,
+    getPrescriptionByDoctor
 }
