@@ -23,6 +23,7 @@ export default function ClinicAdminDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [doc, setDoc] = useState(null);
+  const [showNotes, setShowNotes] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     password: '',
@@ -501,7 +502,7 @@ export default function ClinicAdminDashboard() {
                     ))}
 
                     <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-                      <DialogContent className="max-w-[70vw] h-[600px]">
+                      <DialogContent className="max-w-[70vw]">
                         <DialogHeader>
                           <DialogTitle>Schedule Appointment</DialogTitle>
                           <DialogDescription>
@@ -549,63 +550,100 @@ export default function ClinicAdminDashboard() {
                           )}
 
                           {/* ----------------------- STEP 2: DATE + TIME ----------------------- */}
-                          {selectedPatient && (!scheduleData.date || !scheduleData.time) && (
-                            <div className="space-y-4 animate-in fade-in duration-300">
+                        {selectedPatient && !showNotes && (
+                            <div className="space-y-8 animate-in fade-in duration-300">
 
-                              {/* Patient Card */}
-                              <div className="p-3 border rounded-lg bg-white shadow-sm">
-                                <div className="flex justify-between items-center">
-                                  <p className="font-semibold text-gray-800 text-base">Selected Patient</p>
+                              {/* Patient Information Card */}
+                              <div className="p-6 border border-blue-200 rounded-2xl bg-white shadow-md">
+                                <div className="flex justify-between items-start mb-3">
+                                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider flex items-center gap-1">
+                                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Patient Information
+                                  </p>
+
                                   <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-500"
+                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm shadow-sm"
                                     onClick={() => {
                                       setSelectedPatient(null);
                                       setScheduleData({ patientId: "", date: "", time: "", notes: "" });
                                     }}
                                   >
-                                    Change
+                                    Change Patient
                                   </Button>
                                 </div>
 
-                                <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                                  <p><span className="font-medium">Name:</span> {selectedPatient.name}</p>
-                                  <p><span className="font-medium">Age:</span> {selectedPatient.patientInfo.age}</p>
-                                  <p><span className="font-medium">Gender:</span> {selectedPatient.patientInfo.gender}</p>
-                                  <p><span className="font-medium">Contact:</span> {selectedPatient.patientInfo.contact}</p>
+                                <div className="flex justify-between items-start">
+                                  <div className="space-y-3">
+                                    <h3 className="font-bold text-2xl text-gray-900">{selectedPatient.name}</h3>
+
+                                    <div className="grid grid-cols-2 gap-x-10 gap-y-2 text-sm">
+                                      <p className="text-gray-700"><span className="font-semibold text-gray-900">Age:</span> {selectedPatient.patientInfo.age}</p>
+                                      <p className="text-gray-700"><span className="font-semibold text-gray-900">Gender:</span> {selectedPatient.patientInfo.gender}</p>
+                                      <p className="text-gray-700 col-span-2">
+                                        <span className="font-semibold text-gray-900">Contact:</span> {selectedPatient.patientInfo.contact}
+                                      </p>
+                                    </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 border border-blue-200 shadow-inner">
+                                      <svg className="w-10 h-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 15c2.477 0 4.779.632 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                      </svg>
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
 
-                              {/* Date & Time */}
-                              <div className="p-3 border rounded-lg bg-gray-50 shadow-inner">
-                                <p className="font-semibold text-gray-700 text-sm mb-2">Select Date & Time</p>
-
-                                <div className="grid grid-cols-2 gap-4">
-
-                                  <div className="space-y-1">
-                                    <Label className="text-sm text-gray-600">Date</Label>
-
-                                    <Input
-                                      type="date"
-                                      className="border-gray-300 rounded-md"
-                                      value={scheduleData.date}
-                                      onChange={(e) =>
-                                        setScheduleData((prev) => ({ ...prev, date: e.target.value }))
-                                      }
-                                    />
+                                {/* Appointment Scheduling Form */}
+                                <div className="p-6 border border-blue-100 rounded-2xl bg-blue-50/40 shadow-inner backdrop-blur-sm">
+                                  <div className="flex items-center gap-2 mb-4 border-b pb-2">
+                                    <svg className="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeWidth={2} d="M8 7V3m8 4V3M5 11h14M5 19h14M5 11v8m14-8v8" />
+                                    </svg>
+                                    <p className="text-base font-semibold text-blue-900 tracking-wide">Appointment Details</p>
                                   </div>
 
-                                  <div className="space-y-1">
-                                    <Label className="text-sm text-gray-600">Time</Label>
+                                  <div className="grid grid-cols-2 gap-6">
+
+                                    {/* Date */}
+                                    <div className="space-y-2">
+                                      <Label htmlFor="date-select" className="text-sm font-medium text-blue-900">Select Date</Label>
+                                      <Input
+                                        id="date-select"
+                                        type="date"
+                                        className="h-12 rounded-lg border-blue-200 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-pointer"
+                                        value={scheduleData.date}
+                                        onChange={(e) => setScheduleData((prev) => ({ ...prev, date: e.target.value }))}
+                                      />
+                                    </div>
+
+                                    {/* Time */}
+                                    <div className="space-y-2">
+                                    <Label htmlFor="time-select" className="text-sm font-medium text-blue-900">Select Time</Label>
                                     <Input
+                                      id="time-select"
                                       type="time"
-                                      className="border-gray-300 rounded-md"
+                                      className="h-12 rounded-lg border-blue-200 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-pointer"
                                       value={scheduleData.time}
-                                      onChange={(e) =>
-                                        setScheduleData((prev) => ({ ...prev, time: e.target.value }))
-                                      }
+                                      onChange={(e) => setScheduleData((prev) => ({ ...prev, time: e.target.value }))}
                                     />
+
+                                    <div className="flex justify-end pt-4">
+                                      <Button
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl"
+                                        onClick={() => {
+                                          if (!scheduleData.date || !scheduleData.time) {
+                                            toast({ title: "Missing Fields", description: "Please select both date and time.", variant: "destructive" });
+                                            return;
+                                          }
+                                        
+                                          setShowNotes(true);
+                                        }}
+                                      >
+                                        NEXT
+                                      </Button>
+                                    </div>
                                   </div>
 
                                 </div>
@@ -613,53 +651,59 @@ export default function ClinicAdminDashboard() {
 
                             </div>
                           )}
+
+
+
 
                           {/* ----------------------- STEP 3: NOTES ----------------------- */}
-                          {scheduleData.date && scheduleData.time && (
-                            <div className="space-y-3 animate-in fade-in duration-300">
-                              <Label>Doctor Notes</Label>
-
-                              <textarea
-                                className="w-full border p-2 rounded-md"
-                                rows={4}
-                                placeholder="Add notes about the patient..."
-                                value={scheduleData.notes}
-                                onChange={(e) =>
-                                  setScheduleData((prev) => ({ ...prev, notes: e.target.value }))
-                                }
-                              />
-
-                              <div className="flex justify-between">
-                                <Button
-                                  variant="outline"
-                                  onClick={() =>
-                                    setScheduleData((prev) => ({ ...prev, date: "", time: "" }))
-                                  }
-                                >
-                                  Back
-                                </Button>
-
-                                <Button
-                                  onClick={() => {
-                                    console.log("Final Schedule Data: ", scheduleData);
-                                    if (!doc) {
-                                      toast({ title: "Error", description: "Doctor not selected!", variant: "destructive" });
-                                      return;
-                                    }
-                                    handleScheduleAppointment();
-                                    // Reset everything after saving
-                                    setScheduleDialogOpen(false);
-                                    setSelectedPatient(null);
-                                    setSearch("");
-                                    setScheduleData({ patientId: "", date: "", time: "", notes: "" });
-                                    setDoc(null);
-                                  }}
-                                >
-                                  Save Appointment
-                                </Button>
-                              </div>
-                            </div>
-                          )}
+                          {showNotes && (
+                           <div className="space-y-3 animate-in fade-in duration-300">
+                             <Label>Doctor Notes</Label>
+                                                  
+                             <textarea
+                               className="w-full border p-2 rounded-md"
+                               rows={4}
+                               placeholder="Add notes about the patient..."
+                               value={scheduleData.notes}
+                               onChange={(e) =>
+                                 setScheduleData((prev) => ({ ...prev, notes: e.target.value }))
+                               }
+                            />
+                         
+                             <div className="flex justify-between">
+                               <Button
+                                 variant="outline"
+                                 onClick={() => setShowNotes(false)}
+                               >
+                                 Back
+                               </Button>
+                          
+                               <Button
+                                 onClick={() => {
+                                   if (!doc) {
+                                     toast({
+                                       title: "Error",
+                                       description: "Doctor not selected!",
+                                       variant: "destructive"
+                                     });
+                                     return;
+                                   }
+                              
+                                   handleScheduleAppointment();
+                              
+                                   setScheduleDialogOpen(false);
+                                   setSelectedPatient(null);
+                                   setScheduleData({ patientId: "", date: "", time: "", notes: "" });
+                                   setDoc(null);
+                                   setShowNotes(false);
+                                 }}
+                               >
+                                 Save Appointment
+                               </Button>
+                                                    </div>
+                                                   </div>
+                         )}
+                         
                         </div>
                       </DialogContent>
                     </Dialog>
