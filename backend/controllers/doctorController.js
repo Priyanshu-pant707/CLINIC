@@ -81,7 +81,7 @@ const showAllPatients = async (req, res) => {
         // find all the appointment for that doctor in their own clinic
 
         const appointments = await appointmentModel.find({ doctorId, clinicId })
-            .populate("patientId", "name email")
+            .populate("patientId", "name email patientInfo.age patientInfo.gender patientInfo.contact")
             .populate("clinicId", "name location");
 
 
