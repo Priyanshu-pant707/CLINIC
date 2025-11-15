@@ -222,6 +222,33 @@ export default function ClinicAdminDashboard() {
     }
     setStep(2);
   };
+
+  const changeStatus = async (st, id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/appointment/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: st })
+
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to change status');
+
+      toast({ title: 'status changed', description: 'status changed successfully' });
+      navigate("/");
+
+    } catch (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+
+  };
+
+
   const handleNextPateint = () => {
     if (!patientFormData.name || !patientFormData.password || !patientFormData.email) {
       toast({ title: 'Error', description: 'Please fill all fields', variant: 'destructive' });
@@ -301,52 +328,203 @@ export default function ClinicAdminDashboard() {
                 <CardTitle>Appointments</CardTitle>
                 <CardDescription>Manage and monitor all clinic appointments</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Patient</TableHead>
-                      <TableHead>Doctor</TableHead>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {appointments.map((apt) => (
-                      <TableRow key={apt._id}>
-                        <TableCell className="font-medium">
-                          {apt.patientId?.name || "Unknown Patient"}
-                        </TableCell>
 
-                        <TableCell>
-                          {apt.doctorId?.name || "Unknown Doctor"}
-                        </TableCell>
 
-                        <TableCell>
-                          {new Date(apt.date).toLocaleDateString()}
-                          {" "}
-                          {apt.time}
-                        </TableCell>
 
-                        <TableCell>
-                          <Badge className={getStatusColor(apt.status)}>
-                            {apt.status}
-                          </Badge>
-                        </TableCell>
+              <Tabs defaultValue="upcommingAppointments" className="space-y-6 ml-8">
+                <TabsList>
+                  <TabsTrigger value="upcommingAppointments">Upcomming </TabsTrigger>
+                  <TabsTrigger value="completeAppointments">Completed </TabsTrigger>
+                  <TabsTrigger value="cancelledAppointments">Cancelled </TabsTrigger>
+                </TabsList>
+                <TabsContent value="upcommingAppointments">
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Patient</TableHead>
+                          <TableHead>Doctor</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {appointments
+                          .filter((apt) => apt.status !== "completed" && apt.status !=="cancelled")
+                          .map((apt) => (
+                            <TableRow key={apt._id}>
+                              <TableCell className="font-medium">
+                                {apt.patientId?.name || "Unknown Patient"}
+                              </TableCell>
 
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">Approve</Button>
-                            <Button variant="outline" size="sm">Reschedule</Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              <TableCell>
+                                {apt.doctorId?.name || "Unknown Doctor"}
+                              </TableCell>
 
-                  </TableBody>
-                </Table>
-              </CardContent>
+                              <TableCell>
+                                {new Date(apt.date).toLocaleDateString()} {apt.time}
+                              </TableCell>
+
+                              <TableCell>
+                                <Badge className={getStatusColor(apt.status)}>
+                                  {apt.status}
+                                </Badge>
+                              </TableCell>
+
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  {apt.status === "pending" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => changeStatus("approved", apt._id)}
+                                    >
+                                      Approve
+                                    </Button>
+                                  )}
+
+                                  {apt.status === "approved" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => changeStatus("cancelled", apt._id)}
+                                    >
+                                      Decline
+                                    </Button>
+                                  )}
+
+                                  <Button variant="outline" size="sm">Reschedule</Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        }
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </TabsContent>
+                <TabsContent value="completeAppointments">
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Patient</TableHead>
+                          <TableHead>Doctor</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {appointments
+                          .filter((apt) => apt.status === "completed")
+                          .map((apt) => (
+                            <TableRow key={apt._id}>
+                              <TableCell className="font-medium">
+                                {apt.patientId?.name || "Unknown Patient"}
+                              </TableCell>
+
+                              <TableCell>
+                                {apt.doctorId?.name || "Unknown Doctor"}
+                              </TableCell>
+
+                              <TableCell>
+                                {new Date(apt.date).toLocaleDateString()} {apt.time}
+                              </TableCell>
+
+                              <TableCell>
+                                <Badge className={getStatusColor(apt.status)}>
+                                  {apt.status}
+                                </Badge>
+                              </TableCell>
+
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Button variant="outline" size="sm">Reschedule</Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        }
+
+
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </TabsContent>
+                <TabsContent value="cancelledAppointments">
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Patient</TableHead>
+                          <TableHead>Doctor</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {appointments
+                          .filter((apt) => apt.status === "cancelled")
+                          .map((apt) => (
+                            <TableRow key={apt._id}>
+                              <TableCell className="font-medium">
+                                {apt.patientId?.name || "Unknown Patient"}
+                              </TableCell>
+
+                              <TableCell>
+                                {apt.doctorId?.name || "Unknown Doctor"}
+                              </TableCell>
+
+                              <TableCell>
+                                {new Date(apt.date).toLocaleDateString()} {apt.time}
+                              </TableCell>
+
+                              <TableCell>
+                                <Badge className={getStatusColor(apt.status)}>
+                                  {apt.status}
+                                </Badge>
+                              </TableCell>
+
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  {apt.status === "pending" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => changeStatus("approved", apt._id)}
+                                    >
+                                      Approve
+                                    </Button>
+                                  )}
+
+                                  {apt.status === "approved" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => changeStatus("cancelled", apt._id)}
+                                    >
+                                      Decline
+                                    </Button>
+                                  )}
+
+                                  <Button variant="outline" size="sm">Reschedule</Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        }
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </TabsContent>
+
+              </Tabs>
+
+
+
             </Card>
           </TabsContent>
 
