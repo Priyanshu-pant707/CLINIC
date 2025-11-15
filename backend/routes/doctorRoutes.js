@@ -17,7 +17,7 @@ router.get('/appointment',
     doctorController.getDoctorAppointments);
 
 // doctor can create prescription to the particular patients based on the appointment
-router.post('/prescription',
+router.post('/prescription/:id',
     verifyToken,
     roleAuthenticator(['doctor']),
     prescriptionController.createPrescription);

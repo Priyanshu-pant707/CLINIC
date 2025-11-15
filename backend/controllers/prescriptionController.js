@@ -8,7 +8,8 @@ const appointmentModel=require("../models/appointment");
 // for doctor
 const createPrescription =async(req,res)=>{
     try{
-        const {appointmentId,diagnosis,medicines,notes}=req.body;
+        const {diagnosis,medicines,notes}=req.body;
+        const appointmentId=req.params.id;
         const doctorId=req.user.id;
         const appointment= await appointmentModel.findById(appointmentId);
 
