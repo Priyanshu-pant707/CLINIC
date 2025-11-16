@@ -5,23 +5,27 @@ const appointmentModel = require("../models/appointment");
 // Create Appointment
 const createAppointment = async (req, res) => {
   try {
-    const {doctorName,date, time, notes } = req.body;
+    const {date, time, notes } = req.body;
 
-    const findDoctor=await userModel.findOne({name:doctorName});
-    if(!findDoctor){
-      return res.status(403).json({
-        success:false,
-        message:"Can't find the user"
+   
+    const doctorId=req.params.id;
 
-      })
-    }
-    const doctorId=findDoctor._id;
+
+    
     const patientId = req.user.id; //  use _id (not _Id)
 
     // Check doctor existence
     const doctor = await userModel.findById(doctorId);
     if (!doctor || doctor.role !== "doctor") {
       return res.status(404).json({ message: "Doctor not found" });
+    }
+
+
+    if(req.user.clinicId.toString()!==doctor.clinic.toString()){
+      return res.status(403).json({
+        success:false,
+        message:"doctor and patient should be from the same clinic"
+      })
     }
 
     // Get clinic ID from doctor
@@ -182,7 +186,7 @@ const {status}= req.body;
 
 const getPatientAppointments=async(req,res)=>{
     try{
-        const patientId = req.user._id;
+        const patientId = req.user.id;
         const appointments=await appointmentModel.find({patientId})
         .populate("doctorId","name specialization")
         . populate("clinicId","clinicName address")

@@ -11,7 +11,8 @@ const prescriptionController= require("../controllers/prescriptionController")
 
 
 //patient can book the appointment
-router.post('/appointments/book',
+// doctor id
+router.post('/appointments/:id',
     verifyToken,
     roleAuthenticator(['patient']),
     appointmentControllers.createAppointment);
