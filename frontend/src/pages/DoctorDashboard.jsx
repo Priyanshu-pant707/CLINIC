@@ -13,33 +13,112 @@ import { Calendar, Clock, FileText, Plus } from 'lucide-react';
 import { mockAppointments, mockPrescriptions } from '@/lib/mockData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate, Link } from 'react-router-dom';
+import { X } from 'lucide-react';
 
 export default function DoctorDashboard() {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
   const [patients, setPatients] = useState([]);
-
-  const [prescriptions] = useState(mockPrescriptions.filter(p => p.doctorName === user?.name));
-
-  const todayAppointments = appointments.filter(a => {
-    const aptDate = new Date(a.datetime).toDateString();
-    const today = new Date().toDateString();
-    return aptDate === today;
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    diagnosis: '',
+    medicines: [{ name: "", dosage: "", frequency: "", duration: "" },],
+    advice: '',
   });
+
+  const addMedicine = () => {
+    setFormData({
+      ...formData,
+      medicines: [
+        ...formData.medicines,
+        { name: "", dosage: "", frequency: "", duration: "" }
+      ],
+    });
+  };
+  const updateMedicine = (index, field, value) => {
+    const updated = [...formData.medicines];
+    updated[index][field] = value;
+
+    setFormData({
+      ...formData,
+      medicines: updated,
+    });
+  };
+
+  const removeMedicine = (index) => {
+    const updated = formData.medicines.filter((_, i) => i !== index);
+    setFormData({ ...formData, medicines: updated });
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleAcceptAppointment = (id) => {
     toast({ title: 'Appointment accepted', description: 'Patient will be notified' });
   };
 
-  const handleCreatePrescription = () => {
-    toast({ title: 'Prescription created', description: 'Prescription saved successfully' });
+  const handleCreatePrescription = async (id) => {
+    try {
+      console.log(formData);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/doctor/prescription/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData)
+
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to add Prescription');
+
+      toast({ title: 'Prescription created', description: 'Prescription saved successfully' });
+      navigate("/");
+
+    } catch (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+  const handleUpdatePrescription = async() => {
+    console.log("Updated Prescription:");
+
+    try {
+      console.log(formData);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/doctor/prescription/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData)
+
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to add Prescription');
+
+      toast({ title: 'Prescription created', description: 'Prescription saved successfully' });
+      navigate("/");
+
+    } catch (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+
+    setOpen(false);
   };
 
 
 
   const API_PATIENTS = 'http://localhost:5000/api/doctor/patients';
   const API_APPOINTMENTS = 'http://localhost:5000/api/doctor/appointment';
-
+  const API_PRESCRIPTION = 'http://localhost:5000/api/doctor/prescriptions';
   useEffect(() => {
     const fetchData = async () => {
 
@@ -76,6 +155,21 @@ export default function DoctorDashboard() {
         const appointmentData = await appointmentRes.json();
         setAppointments(appointmentData.data);
 
+        const prescriptionRes = await fetch(API_PRESCRIPTION, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+
+        if (!prescriptionRes.ok) {
+          throw new Error('Failed to fetch appointments');
+        }
+
+        const prescriptionData = await prescriptionRes.json();
+        setPrescriptions(prescriptionData.data);
 
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -85,6 +179,31 @@ export default function DoctorDashboard() {
 
     fetchData();
   }, []);
+
+
+  const changeStatus = async (st, id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/appointment/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: st })
+
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to change status');
+
+      toast({ title: 'status changed', description: 'status changed successfully' });
+      navigate("/");
+
+    } catch (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -101,7 +220,7 @@ export default function DoctorDashboard() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{todayAppointments.length}</div>
+              <div className="text-2xl font-bold">{appointments.filter(a => a.status === 'approved').length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -121,7 +240,7 @@ export default function DoctorDashboard() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{prescriptions.length}</div>
+              <div className="text-2xl font-bold">{appointments.filter(a => a.status === 'completed').length}</div>
             </CardContent>
           </Card>
         </div>
@@ -141,51 +260,7 @@ export default function DoctorDashboard() {
                     <CardTitle>Appointments</CardTitle>
                     <CardDescription>Manage your appointment schedule</CardDescription>
                   </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Prescription
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Create Prescription</DialogTitle>
-                        <DialogDescription>Write a prescription for your patient</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Patient Name</Label>
-                            <Input placeholder="Select patient" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Appointment</Label>
-                            <Input placeholder="Select appointment" />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Medicine 1</Label>
-                          <div className="grid grid-cols-4 gap-2">
-                            <Input placeholder="Name" className="col-span-2" />
-                            <Input placeholder="Dose" />
-                            <Input placeholder="Duration" />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Notes</Label>
-                          <Textarea placeholder="Additional instructions..." rows={4} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Follow-up Date</Label>
-                          <Input type="date" />
-                        </div>
-                        <Button className="w-full" onClick={handleCreatePrescription}>
-                          Create Prescription
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+
                 </div>
               </CardHeader>
 
@@ -214,7 +289,8 @@ export default function DoctorDashboard() {
                             <TableRow key={apt._id}>
                               <TableCell className="font-medium">{apt.patientId.name}</TableCell>
                               <TableCell>{new Date(apt.date).toLocaleString()}</TableCell>
-                              <TableCell><Dialog>
+                              <TableCell>
+                                <Dialog>
                                   <DialogTrigger asChild>
                                     <Button variant="outline" size="sm">View</Button>
 
@@ -222,22 +298,23 @@ export default function DoctorDashboard() {
 
                                   <DialogContent className="max-w-md rounded-xl">
                                     <DialogHeader>
-                                      <DialogTitle className="text-xl font-bold text-yellow-700">
+                                      <DialogTitle className="text-xl font-bold text-blue-700">
                                         Notes
                                       </DialogTitle>
                                     </DialogHeader>
 
-                                    <div className="mt-4 p-4 bg-yellow-100 rounded-lg shadow-inner border-l-4 border-yellow-500">
+                                    <div className="mt-4 p-4 bg-blue-100 rounded-lg shadow-inner border-l-4 border-blue-500">
                                       {apt.notes ? (
-                                        <p className="text-yellow-900 whitespace-pre-wrap font-medium">
+                                        <p className="text-blue-900 whitespace-pre-wrap font-medium">
                                           {apt.notes}
                                         </p>
                                       ) : (
-                                        <p className="text-yellow-600 italic">No notes available.</p>
+                                        <p className="text-blue-600 italic">No notes available.</p>
                                       )}
                                     </div>
                                   </DialogContent>
-                                </Dialog></TableCell>
+                                </Dialog>
+                              </TableCell>
                               <TableCell>
                                 <Badge variant={apt.status === 'approved' ? 'default' : 'secondary'}>
                                   {apt.status}
@@ -246,13 +323,114 @@ export default function DoctorDashboard() {
                               <TableCell>
                                 {apt.status === 'pending' ? (
                                   <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => handleAcceptAppointment(apt.id)}>
+                                    <Button variant="outline" size="sm" onClick={() => changeStatus("approved", apt._id)}>
                                       Accept
                                     </Button>
-                                    <Button variant="outline" size="sm">Reject</Button>
+                                    <Button variant="outline" size="sm" onClick={() => changeStatus("cancelled", apt._id)}
+                                    >Reject</Button>
                                   </div>
                                 ) : (
-                                  <Button variant="outline" size="sm">View</Button>
+                                  <div className="flex gap-2">
+
+
+
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm" >
+                                          Complete
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent className="max-w-2xl">
+                                        <DialogHeader>
+                                          <DialogTitle>Create Prescription</DialogTitle>
+                                          <DialogDescription>Write a prescription for your patient</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-4">
+                                          <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                              <Label htmlFor="name">Patient Name</Label>
+                                              <Input defaultValue={apt.patientId.name} />
+                                            </div>
+                                          </div>
+
+
+                                          <div className="max-h-40 overflow-y-auto pr-2 space-y-4">
+                                            {formData.medicines.map((med, index) => (
+                                              <div
+                                                key={index}
+                                                className="space-y-2 border p-4 rounded-xl bg-gray-50"
+                                              >
+                                                <Label className="font-medium">Medicine {index + 1}</Label>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                                  <Input
+                                                    placeholder="Name"
+                                                    value={med.name}
+                                                    onChange={(e) =>
+                                                      updateMedicine(index, "name", e.target.value)
+                                                    }
+                                                  />
+
+                                                  <Input
+                                                    placeholder="Dosage"
+                                                    value={med.dosage}
+                                                    onChange={(e) =>
+                                                      updateMedicine(index, "dosage", e.target.value)
+                                                    }
+                                                  />
+
+                                                  <Input
+                                                    placeholder="Frequency"
+                                                    value={med.frequency}
+                                                    onChange={(e) =>
+                                                      updateMedicine(index, "frequency", e.target.value)
+                                                    }
+                                                  />
+
+                                                  <Input
+                                                    placeholder="Duration"
+                                                    value={med.duration}
+                                                    onChange={(e) =>
+                                                      updateMedicine(index, "duration", e.target.value)
+                                                    }
+                                                  />
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+
+                                          <div className="flex justify-center">
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              className="flex items-center gap-2 text-purple-600 border-purple-600"
+                                              onClick={addMedicine}
+                                            >
+                                              <Plus className="w-4 h-4" /> Add Medicine
+                                            </Button>
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="diagnosis">diagnosis</Label>
+                                            <Input id="diagnosis" name="diagnosis" value={formData.diagnosis} onChange={handleChange} placeholder="diagnosis" />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="advice">advice</Label>
+                                            <Input id="advice" name="advice" value={formData.advice} onChange={handleChange} placeholder="advice" />
+                                          </div>
+                                          <Button className="w-full" onClick={() => {
+
+                                            handleCreatePrescription(apt._id);
+                                            // changeStatus("completed", apt._id);
+                                          }
+                                          }>
+                                            Create Prescription
+                                          </Button>
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
+                                    <Button variant="outline" size="sm" onClick={() => changeStatus("cancelled", apt._id)}
+                                    >Reject</Button>
+                                  </div>
                                 )}
                               </TableCell>
                             </TableRow>
@@ -289,18 +467,18 @@ export default function DoctorDashboard() {
 
                                   <DialogContent className="max-w-md rounded-xl">
                                     <DialogHeader>
-                                      <DialogTitle className="text-xl font-bold text-yellow-700">
+                                      <DialogTitle className="text-xl font-bold text-blue-700">
                                         Notes
                                       </DialogTitle>
                                     </DialogHeader>
 
-                                    <div className="mt-4 p-4 bg-yellow-100 rounded-lg shadow-inner border-l-4 border-yellow-500">
+                                    <div className="mt-4 p-4 bg-blue-100 rounded-lg shadow-inner border-l-4 border-blue-500">
                                       {apt.notes ? (
-                                        <p className="text-yellow-900 whitespace-pre-wrap font-medium">
+                                        <p className="text-blue-900 whitespace-pre-wrap font-medium">
                                           {apt.notes}
                                         </p>
                                       ) : (
-                                        <p className="text-yellow-600 italic">No notes available.</p>
+                                        <p className="text-blue-600 italic">No notes available.</p>
                                       )}
                                     </div>
                                   </DialogContent>
@@ -310,21 +488,132 @@ export default function DoctorDashboard() {
 
                               </TableCell>
                               <TableCell>
-                                <Badge variant={apt.status === 'approved' ? 'default' : 'secondary'}>
+                                <Badge variant={'secondary'}>
                                   {apt.status}
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                {apt.status === 'pending' ? (
-                                  <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => handleAcceptAppointment(apt.id)}>
-                                      Accept
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm" >
+                                      Edit
                                     </Button>
-                                    <Button variant="outline" size="sm">Reject</Button>
-                                  </div>
-                                ) : (
-                                  <Button variant="outline" size="sm">View</Button>
-                                )}
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-2xl">
+                                    <DialogHeader>
+                                      <DialogTitle>Create Prescription</DialogTitle>
+                                      <DialogDescription>Write a prescription for your patient</DialogDescription>
+                                    </DialogHeader>
+                                    {prescriptions
+                                      .filter((presc) => presc._id === apt.prescriptions[0])
+                                      .map((presc) => (
+                                        <div key={presc._id} className="space-y-4">
+
+                                          {/* Patient Details */}
+                                          <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                              <Label htmlFor="name">Patient Name</Label>
+                                              <Input defaultValue={apt.patientId.name} />
+                                            </div>
+                                          </div>
+
+                                          {/* Medicines */}
+                                          <div className="max-h-40 overflow-y-auto pr-2 space-y-4">
+                                            {presc.medicines.map((med, index) => (
+                                              <div
+                                                key={index}
+                                                className="space-y-2 border p-4 rounded-xl bg-gray-50 relative"
+                                              >
+                                                {/* Remove Button */}
+                                                <button
+                                                  type="button"
+                                                  onClick={() => removeMedicine(index)}
+                                                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                                                >
+                                                  <X className="w-4 h-4" />
+                                                </button>
+
+                                                <Label className="font-medium">Medicine {index + 1}</Label>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                                  <Input
+                                                    placeholder="Name"
+                                                    value={med.name}
+                                                    onChange={(e) => updateMedicine(index, "name", e.target.value)}
+                                                  />
+                                                  <Input
+                                                    placeholder="Dosage"
+                                                    value={med.dosage}
+                                                    onChange={(e) => updateMedicine(index, "dosage", e.target.value)}
+                                                  />
+                                                  <Input
+                                                    placeholder="Frequency"
+                                                    value={med.frequency}
+                                                    onChange={(e) =>
+                                                      updateMedicine(index, "frequency", e.target.value)
+                                                    }
+                                                  />
+                                                  <Input
+                                                    placeholder="Duration"
+                                                    value={med.duration}
+                                                    onChange={(e) =>
+                                                      updateMedicine(index, "duration", e.target.value)
+                                                    }
+                                                  />
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+
+                                          {/* Add Medicine */}
+                                          <div className="flex justify-center">
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              className="flex items-center gap-2 text-purple-600 border-purple-600"
+                                              onClick={addMedicine}
+                                            >
+                                              <Plus className="w-4 h-4" /> Add Medicine
+                                            </Button>
+                                          </div>
+
+                                          {/* Diagnosis */}
+                                          <div className="space-y-2">
+                                            <Label htmlFor="diagnosis">Diagnosis</Label>
+                                            <Input
+                                              id="diagnosis"
+                                              name="diagnosis"
+                                              value={presc.diagnosis}
+                                              onChange={handleChange}
+                                              placeholder="diagnosis"
+                                            />
+                                          </div>
+
+                                          {/* Advice */}
+                                          <div className="space-y-2">
+                                            <Label htmlFor="advice">Advice</Label>
+                                            <Input
+                                              id="advice"
+                                              name="advice"
+                                              value={presc.advice}
+                                              onChange={handleChange}
+                                              placeholder="advice"
+                                            />
+                                          </div>
+                                        </div>
+                                      ))}
+
+                                    <Button className="w-full" onClick={() => {
+
+                                      handleUpdatePrescription(apt._id);
+                                      // changeStatus("completed", apt._id);
+                                    }
+                                    }>
+                                      Create Prescription
+                                    </Button>
+                                  </DialogContent>
+                                </Dialog>
+
                               </TableCell>
                             </TableRow>
                           ))}
@@ -349,7 +638,32 @@ export default function DoctorDashboard() {
                             <TableRow key={apt._id}>
                               <TableCell className="font-medium">{apt.patientId.name}</TableCell>
                               <TableCell>{new Date(apt.date).toLocaleString()}</TableCell>
-                              <TableCell><Button variant="outline" size="sm">View</Button></TableCell>
+                              <TableCell>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm">View</Button>
+
+                                  </DialogTrigger>
+
+                                  <DialogContent className="max-w-md rounded-xl">
+                                    <DialogHeader>
+                                      <DialogTitle className="text-xl font-bold text-blue-700">
+                                        Notes
+                                      </DialogTitle>
+                                    </DialogHeader>
+
+                                    <div className="mt-4 p-4 bg-blue-100 rounded-lg shadow-inner border-l-4 border-blue-500">
+                                      {apt.notes ? (
+                                        <p className="text-blue-900 whitespace-pre-wrap font-medium">
+                                          {apt.notes}
+                                        </p>
+                                      ) : (
+                                        <p className="text-blue-600 italic">No notes available.</p>
+                                      )}
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              </TableCell>
                               <TableCell>
                                 <Badge variant={apt.status === 'approved' ? 'default' : 'secondary'}>
                                   {apt.status}
@@ -384,12 +698,12 @@ export default function DoctorDashboard() {
                   </TableHeader>
                   <TableBody>
                     {prescriptions.map((presc) => (
-                      <TableRow key={presc.id}>
-                        <TableCell className="font-medium">{presc.patientName}</TableCell>
+                      <TableRow key={presc._id}>
+                        <TableCell className="font-medium">{presc.patientId.name}</TableCell>
                         <TableCell>{new Date(presc.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell>{presc.medicines.length} medicines</TableCell>
                         <TableCell>
-                          {presc.followUpDate ? new Date(presc.followUpDate).toLocaleDateString() : 'N/A'}
+                          {presc.diagnosis}
                         </TableCell>
                         <TableCell>
                           <Button variant="outline" size="sm">View Details</Button>
@@ -435,7 +749,7 @@ export default function DoctorDashboard() {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+    </div >
   );
 }
 
