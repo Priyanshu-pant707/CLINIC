@@ -39,7 +39,7 @@ const login = async (req, res) => {
 
         // clinicId sirf tab add karo jab user clinic se belong karta hai
         if (user.role !== "superadmin") {
-            payload.clinicId = user.clinicId;
+            payload.clinicId = user.clinic;
         }
 
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -51,7 +51,7 @@ const login = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                clinicId: user.clinicId || null,
+                clinicId: user.clinic || null,
             },
         });
     } catch (error) {
