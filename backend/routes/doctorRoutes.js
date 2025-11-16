@@ -22,6 +22,16 @@ router.post('/prescription/:id',
     roleAuthenticator(['doctor']),
     prescriptionController.createPrescription);
 
+
+
+
+// updating the prescription
+
+router.put('/prescription/:id',
+    verifyToken,
+    roleAuthenticator(['doctor']),
+    prescriptionController.updatePrescriptionByDoctor);
+
 // doctor can see patients related to the particular doctor
 router.get('/patients',
     verifyToken,

@@ -1,4 +1,5 @@
 const prescriptionModel = require("../models/prescription");
+
 const appointmentModel = require("../models/appointment");
 
 
@@ -110,6 +111,78 @@ const getPrescriptionByDoctor = async (req, res) => {
 
 
 
+const updatePrescriptionByDoctor=async(req,res)=>{
+    try{
+        const prescriptionId=req.params.id;
+        const doctorId=req.user.id;
+        const {diagnosis,medicines,advice}=req.body;
+
+
+
+        // find the prescription
+
+        const prescription = await prescriptionModel.findById(prescriptionId);
+
+
+
+        if(!prescriptionId){
+            return res.status(404).json({
+                success:false,
+                message:"Prescription not found",
+            });
+        }
+
+
+        // doctor access check 
+        // and the main thing only the doctor who wrote it can update it
+
+        if(prescription.doctorId.toString()!==doctorId.toString()){
+            return res.status(403).json({
+                success:false,
+                message:"Not allowed o update this prescription"
+            });
+        }
+
+
+        // medicines check kro ki hai ki nhi
+
+
+        if(medicines && medicines.length ===0){
+            return res.status(400).json({
+                success:false,
+                message:"Medicines list cannot be empty",
+            })
+        }
+
+
+
+        // updates the fie;s only if provided
+
+        if(diagnosis) prescription.diagnosis=diagnosis;
+        if(medicines) prescription.medicines = medicines;
+        if(advice) prescription.advice=advice;
+
+
+        await prescription.save();
+
+
+        return res.status(200).json({
+            success:true,
+            message :"Prescription updates successfully",
+            data:prescription,
+        });
+
+
+    }catch(err){
+
+        return res.status(500).json({
+            success:false,
+            message:"Internal server error...",
+            error: err.message,
+        });
+
+    }
+}
 
 
 
@@ -147,5 +220,6 @@ const getPrescriptionByPatient = async (req, res) => {
 module.exports = {
     createPrescription,
     getPrescriptionByPatient,
-    getPrescriptionByDoctor
+    getPrescriptionByDoctor,
+    updatePrescriptionByDoctor
 }
