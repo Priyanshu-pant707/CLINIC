@@ -20,7 +20,7 @@ const createPrescription = async (req, res) => {
         }
 
         // doctor access check
-        if (appointment.doctorId.toString() !== doctorId) {
+        if (appointment.doctorId.toString() !== doctorId.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Not allowed to write prescription for this appointment",
