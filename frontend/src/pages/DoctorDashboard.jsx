@@ -114,8 +114,6 @@ export default function DoctorDashboard() {
     setOpen(false);
   };
 
-
-
   const API_PATIENTS = 'http://localhost:5000/api/doctor/patients';
   const API_APPOINTMENTS = 'http://localhost:5000/api/doctor/appointment';
   const API_PRESCRIPTION = 'http://localhost:5000/api/doctor/prescriptions';

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -17,17 +18,119 @@ import { toast } from '@/hooks/use-toast';
 
 export default function PatientDashboard() {
   const { user } = useAuth();
-  const [doctors] = useState(mockDoctors);
-  const [appointments] = useState(mockAppointments.filter(a => a.patientName === 'Alice Patient'));
-  const [prescriptions] = useState(mockPrescriptions.filter(p => p.patientName === 'Alice Patient'));
+  const [appointments, setAppointments] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [clinicId, setClinicId] = useState();
+  const navigate = useNavigate();
 
-  const handleBookAppointment = () => {
-    toast({ title: 'Appointment requested', description: 'Waiting for doctor confirmation' });
+  const [scheduleData, setScheduleData] = useState({
+    date: "",
+    time: "",
+    notes: "",
+  });
+  const handleBookAppointment = async (doc) => {
+
+    try {
+      const token = localStorage.getItem('token');
+      console.log(doc + token);
+
+      const res = await fetch(`http://localhost:5000/api/patient/appointments/${doc}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(scheduleData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to Schedule Appointment');
+
+
+      toast({ title: 'Appointment requested', description: 'Waiting for doctor confirmation' });
+      navigate("/");
+
+    } catch (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
   };
 
   const handleDownloadPrescription = (id) => {
     toast({ title: 'Download started', description: 'Prescription PDF will download shortly' });
   };
+
+
+  const API_USERS = 'http://localhost:5000/userinfo';
+  const API_APPOINTMENTS = 'http://localhost:5000/api/patient/appointments';
+  const API_PRESCRIPTION = 'http://localhost:5000/api/patient/prescription';
+
+  useEffect(() => {
+    const fetchData = async () => {
+
+      try {
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        setClinicId(user.clinicId);
+        const usersRes = await fetch(API_USERS, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+
+        if (!usersRes.ok) {
+          throw new Error('Failed to fetch appointments');
+        }
+
+        const usersData = await usersRes.json();
+
+        setUsers(usersData);
+
+
+
+        const appointmentRes = await fetch(API_APPOINTMENTS, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+
+        if (!appointmentRes.ok) {
+          throw new Error('Failed to fetch appointments');
+        }
+
+        const appointmentData = await appointmentRes.json();
+        setAppointments(appointmentData.data);
+
+        const prescriptionRes = await fetch(API_PRESCRIPTION, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+
+        if (!prescriptionRes.ok) {
+          throw new Error('Failed to fetch appointments');
+        }
+
+        const prescriptionData = await prescriptionRes.json();
+        setPrescriptions(prescriptionData.data);
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast({ title: 'Error', description: 'Failed to load appointments', variant: 'destructive' });
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,69 +198,76 @@ export default function PatientDashboard() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  {doctors.map((doctor) => (
-                    <Card key={doctor.id}>
-                      <CardHeader>
-                        <CardTitle className="text-lg">{doctor.name}</CardTitle>
-                        <CardDescription>
-                          {doctor.specialization} • {doctor.qualifications}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <p className="text-sm text-muted-foreground">Available:</p>
-                          {doctor.availability.map((slot, idx) => (
-                            <Badge key={idx} variant="outline" className="mr-2">
-                              {slot}
-                            </Badge>
-                          ))}
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button className="w-full mt-4">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Book Appointment
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Book Appointment</DialogTitle>
-                                <DialogDescription>
-                                  Schedule an appointment with {doctor.name}
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label>Date</Label>
-                                  <Input type="date" />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label>Time Slot</Label>
-                                  <Select>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select time" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="10:00">10:00 AM</SelectItem>
-                                      <SelectItem value="11:00">11:00 AM</SelectItem>
-                                      <SelectItem value="14:00">2:00 PM</SelectItem>
-                                      <SelectItem value="15:00">3:00 PM</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="space-y-2">
-                                  <Label>Reason for Visit</Label>
-                                  <Textarea placeholder="Describe your symptoms..." rows={3} />
-                                </div>
-                                <Button className="w-full" onClick={handleBookAppointment}>
-                                  Request Appointment
+                  {users.filter((doc) => doc.role === "doctor" && doc.clinic === clinicId)
+                    .map((doc) => (
+                      <Card key={doc._id}>
+                        <CardHeader>
+                          <CardTitle className="text-lg">{doc.name}</CardTitle>
+                          <CardDescription>
+                            {doc.doctorInfo.specialization} • {doc.doctorInfo.qualifications}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <p className="text-sm text-muted-foreground">email:</p>
+                            {doc.email}
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button className="w-full mt-4">
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Book Appointment
                                 </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Book Appointment</DialogTitle>
+                                  <DialogDescription>
+                                    Schedule an appointment with {doc.name}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="date-select" className="text-sm font-medium text-blue-900">Select Date</Label>
+                                    <Input
+                                      id="date-select"
+                                      type="date"
+                                      className="h-12 rounded-lg border-blue-200 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-pointer"
+                                      value={scheduleData.date}
+                                      onChange={(e) => setScheduleData((prev) => ({ ...prev, date: e.target.value }))}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="time-select" className="text-sm font-medium text-blue-900">Select Time</Label>
+                                    <Input
+                                      id="time-select"
+                                      type="time"
+                                      className="h-12 rounded-lg border-blue-200 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-pointer"
+                                      value={scheduleData.time}
+                                      onChange={(e) => setScheduleData((prev) => ({ ...prev, time: e.target.value }))}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Reason for Visit</Label>
+                                    <textarea
+                                      className="w-full border p-2 rounded-md"
+                                      rows={4}
+                                      placeholder="Reason for Visit"
+                                      value={scheduleData.notes}
+                                      onChange={(e) =>
+                                        setScheduleData((prev) => ({ ...prev, notes: e.target.value }))
+                                      }
+                                    />
+                                  </div>
+                                  <Button className="w-full" onClick={() => { handleBookAppointment(doc._id) }}>
+                                    Request Appointment
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -183,9 +293,15 @@ export default function PatientDashboard() {
                   <TableBody>
                     {appointments.map((apt) => (
                       <TableRow key={apt.id}>
-                        <TableCell className="font-medium">{apt.doctorName}</TableCell>
-                        <TableCell>{new Date(apt.datetime).toLocaleString()}</TableCell>
-                        <TableCell>{apt.reason}</TableCell>
+                        <TableCell className="font-medium">{apt.doctorId.name}</TableCell>
+
+                        <TableCell>
+                          {apt.date && apt.time
+                            ? new Date(`${apt.date.split("T")[0]}T${apt.time}`).toLocaleString()
+                            : "N/A"}
+                        </TableCell>
+
+                        <TableCell>{apt.notes}</TableCell>
                         <TableCell>
                           <Badge variant={apt.status === 'confirmed' ? 'default' : 'secondary'}>
                             {apt.status}
@@ -225,19 +341,107 @@ export default function PatientDashboard() {
                   </TableHeader>
                   <TableBody>
                     {prescriptions.map((presc) => (
-                      <TableRow key={presc.id}>
-                        <TableCell className="font-medium">{presc.doctorName}</TableCell>
+                      <TableRow key={presc._id}>
+                        <TableCell className="font-medium">{presc.doctorId.name}</TableCell>
                         <TableCell>{new Date(presc.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell>
                           {presc.medicines.map(m => m.name).join(', ')}
                         </TableCell>
+
                         <TableCell>
-                          {presc.followUpDate ? new Date(presc.followUpDate).toLocaleDateString() : 'N/A'}
+                          {presc.appointmentId.date && presc.appointmentId.time
+                            ? new Date(`${presc.appointmentId.date.split("T")[0]}T${presc.appointmentId.time}`).toLocaleString()
+                            : "N/A"}
                         </TableCell>
+
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">View</Button>
-                            <Button variant="outline" size="sm" onClick={() => handleDownloadPrescription(presc.id)}>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="font-medium border-blue-500 text-blue-600 hover:bg-blue-50"
+                                >
+                                  View
+                                </Button>
+                              </DialogTrigger>
+
+                              <DialogContent className="max-w-xl rounded-2xl shadow-2xl p-6 bg-gradient-to-b from-blue-50 to-white">
+                                <DialogHeader>
+                                  <DialogTitle className="text-3xl font-bold text-blue-700">
+                                    Prescription Details
+                                  </DialogTitle>
+                                  <DialogDescription className="text-sm text-blue-600">
+                                    Full medical prescription and doctor information
+                                  </DialogDescription>
+                                </DialogHeader>
+
+                                {presc && (
+                                  <div className="space-y-6">
+
+                                    {/* Doctor Section */}
+                                    <div className="rounded-xl p-4 bg-white shadow-lg border-l-4 border-blue-500">
+                                      <h3 className="font-bold text-xl text-blue-700 flex items-center gap-2">
+                                        👨‍⚕️ Doctor
+                                      </h3>
+                                      <p className="mt-1 text-gray-800 font-semibold">{presc.doctorId?.name}</p>
+                                      <p className="text-gray-600 text-sm">📧 {presc.doctorId?.email}</p>
+                                    </div>
+
+                                    {/* Diagnosis */}
+                                    <div className="rounded-xl p-4 bg-white shadow-lg border-l-4 border-green-500">
+                                      <h3 className="font-bold text-xl text-green-700 flex items-center gap-2">
+                                        🩺 Diagnosis
+                                      </h3>
+                                      <p className="text-gray-700 mt-1 text-sm font-medium">
+                                        {presc.diagnosis || "N/A"}
+                                      </p>
+                                    </div>
+
+                                    {/* Medicines */}
+                                    <div className="rounded-xl p-4 bg-white shadow-lg border-l-4 border-purple-500">
+                                      <h3 className="font-bold text-xl text-purple-700 flex items-center gap-2">
+                                        💊 Medicines
+                                      </h3>
+
+                                      <div className="space-y-4 mt-3">
+                                        {presc.medicines.map((med) => (
+                                          <div
+                                            key={med._id}
+                                            className="p-4 rounded-xl shadow-md bg-gradient-to-r from-purple-50 to-white border border-purple-200"
+                                          >
+                                            <p className="font-semibold text-lg text-purple-700">{med.name}</p>
+                                            <p className="text-gray-700 text-sm mt-1">
+                                              🔹 <strong>Dosage:</strong> {med.dosage}
+                                            </p>
+                                            <p className="text-gray-700 text-sm">
+                                              🔹 <strong>Frequency:</strong> {med.frequency}
+                                            </p>
+                                            <p className="text-gray-700 text-sm">
+                                              🔹 <strong>Duration:</strong> {med.duration}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Advice */}
+                                    <div className="rounded-xl p-4 bg-white shadow-lg border-l-4 border-yellow-500">
+                                      <h3 className="font-bold text-xl text-yellow-700 flex items-center gap-2">
+                                        💡 Advice
+                                      </h3>
+                                      <p className="text-gray-800 mt-1 text-sm font-medium">
+                                        {presc.advice || "N/A"}
+                                      </p>
+                                    </div>
+
+                                  </div>
+                                )}
+                              </DialogContent>
+                            </Dialog>
+
+                            <Button variant="outline" size="sm" onClick={() => handleDownloadPrescription(presc._id)}>
                               <Download className="h-4 w-4" />
                             </Button>
                           </div>

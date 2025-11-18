@@ -351,7 +351,7 @@ export default function ClinicAdminDashboard() {
                       </TableHeader>
                       <TableBody>
                         {appointments
-                          .filter((apt) => apt.status !== "completed" && apt.status !=="cancelled")
+                          .filter((apt) => apt.status !== "completed" && apt.status !== "cancelled")
                           .map((apt) => (
                             <TableRow key={apt._id}>
                               <TableCell className="font-medium">
@@ -728,7 +728,7 @@ export default function ClinicAdminDashboard() {
                           )}
 
                           {/* ----------------------- STEP 2: DATE + TIME ----------------------- */}
-                        {selectedPatient && !showNotes && (
+                          {selectedPatient && !showNotes && (
                             <div className="space-y-8 animate-in fade-in duration-300">
 
                               {/* Patient Information Card */}
@@ -763,41 +763,41 @@ export default function ClinicAdminDashboard() {
                                         <span className="font-semibold text-gray-900">Contact:</span> {selectedPatient.patientInfo.contact}
                                       </p>
                                     </div>
-                                    </div>
+                                  </div>
 
-                                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 border border-blue-200 shadow-inner">
-                                      <svg className="w-10 h-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 15c2.477 0 4.779.632 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                      </svg>
-                                    </div>
+                                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 border border-blue-200 shadow-inner">
+                                    <svg className="w-10 h-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 15c2.477 0 4.779.632 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
                                   </div>
                                 </div>
+                              </div>
 
-                                {/* Appointment Scheduling Form */}
-                                <div className="p-6 border border-blue-100 rounded-2xl bg-blue-50/40 shadow-inner backdrop-blur-sm">
-                                  <div className="flex items-center gap-2 mb-4 border-b pb-2">
-                                    <svg className="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeWidth={2} d="M8 7V3m8 4V3M5 11h14M5 19h14M5 11v8m14-8v8" />
-                                    </svg>
-                                    <p className="text-base font-semibold text-blue-900 tracking-wide">Appointment Details</p>
+                              {/* Appointment Scheduling Form */}
+                              <div className="p-6 border border-blue-100 rounded-2xl bg-blue-50/40 shadow-inner backdrop-blur-sm">
+                                <div className="flex items-center gap-2 mb-4 border-b pb-2">
+                                  <svg className="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeWidth={2} d="M8 7V3m8 4V3M5 11h14M5 19h14M5 11v8m14-8v8" />
+                                  </svg>
+                                  <p className="text-base font-semibold text-blue-900 tracking-wide">Appointment Details</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+
+                                  {/* Date */}
+                                  <div className="space-y-2">
+                                    <Label htmlFor="date-select" className="text-sm font-medium text-blue-900">Select Date</Label>
+                                    <Input
+                                      id="date-select"
+                                      type="date"
+                                      className="h-12 rounded-lg border-blue-200 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-pointer"
+                                      value={scheduleData.date}
+                                      onChange={(e) => setScheduleData((prev) => ({ ...prev, date: e.target.value }))}
+                                    />
                                   </div>
 
-                                  <div className="grid grid-cols-2 gap-6">
-
-                                    {/* Date */}
-                                    <div className="space-y-2">
-                                      <Label htmlFor="date-select" className="text-sm font-medium text-blue-900">Select Date</Label>
-                                      <Input
-                                        id="date-select"
-                                        type="date"
-                                        className="h-12 rounded-lg border-blue-200 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-pointer"
-                                        value={scheduleData.date}
-                                        onChange={(e) => setScheduleData((prev) => ({ ...prev, date: e.target.value }))}
-                                      />
-                                    </div>
-
-                                    {/* Time */}
-                                    <div className="space-y-2">
+                                  {/* Time */}
+                                  <div className="space-y-2">
                                     <Label htmlFor="time-select" className="text-sm font-medium text-blue-900">Select Time</Label>
                                     <Input
                                       id="time-select"
@@ -806,252 +806,252 @@ export default function ClinicAdminDashboard() {
                                       value={scheduleData.time}
                                       onChange={(e) => setScheduleData((prev) => ({ ...prev, time: e.target.value }))}
                                     />
-
-                                    <div className="flex justify-end pt-4">
-                                      <Button
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl"
-                                        onClick={() => {
-                                          if (!scheduleData.date || !scheduleData.time) {
-                                            toast({ title: "Missing Fields", description: "Please select both date and time.", variant: "destructive" });
-                                            return;
-                                          }
-                                        
-                                          setShowNotes(true);
-                                        }}
-                                      >
-                                        NEXT
-                                      </Button>
-                                    </div>
                                   </div>
 
-                                </div>
-                              </div>
+                                  <div className="flex justify-end pt-4">
+                                    <Button
+                                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl"
+                                      onClick={() => {
+                                        if (!scheduleData.date || !scheduleData.time) {
+                                          toast({ title: "Missing Fields", description: "Please select both date and time.", variant: "destructive" });
+                                          return;
+                                        }
 
+                                        setShowNotes(true);
+                                      }}
+                                    >
+                                      NEXT
+                                    </Button>
+                                  </div>
+                                </div>
+
+                              </div>
                             </div>
+
                           )}
 
 
 
 
-                          {/* ----------------------- STEP 3: NOTES ----------------------- */}
-                          {showNotes && (
-                           <div className="space-y-3 animate-in fade-in duration-300">
-                             <Label>Doctor Notes</Label>
-                                                  
-                             <textarea
-                               className="w-full border p-2 rounded-md"
-                               rows={4}
-                               placeholder="Add notes about the patient..."
-                               value={scheduleData.notes}
-                               onChange={(e) =>
-                                 setScheduleData((prev) => ({ ...prev, notes: e.target.value }))
-                               }
+                        {/* ----------------------- STEP 3: NOTES ----------------------- */}
+                        {showNotes && (
+                          <div className="space-y-3 animate-in fade-in duration-300">
+                            <Label>Doctor Notes</Label>
+
+                            <textarea
+                              className="w-full border p-2 rounded-md"
+                              rows={4}
+                              placeholder="Add notes about the patient..."
+                              value={scheduleData.notes}
+                              onChange={(e) =>
+                                setScheduleData((prev) => ({ ...prev, notes: e.target.value }))
+                              }
                             />
-                         
-                             <div className="flex justify-between">
-                               <Button
-                                 variant="outline"
-                                 onClick={() => setShowNotes(false)}
-                               >
-                                 Back
-                               </Button>
-                          
-                               <Button
-                                 onClick={() => {
-                                   if (!doc) {
-                                     toast({
-                                       title: "Error",
-                                       description: "Doctor not selected!",
-                                       variant: "destructive"
-                                     });
-                                     return;
-                                   }
-                              
-                                   handleScheduleAppointment();
-                              
-                                   setScheduleDialogOpen(false);
-                                   setSelectedPatient(null);
-                                   setScheduleData({ patientId: "", date: "", time: "", notes: "" });
-                                   setDoc(null);
-                                   setShowNotes(false);
-                                 }}
-                               >
-                                 Save Appointment
-                               </Button>
-                                                    </div>
-                                                   </div>
-                         )}
-                         
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                    );
 
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                            <div className="flex justify-between">
+                              <Button
+                                variant="outline"
+                                onClick={() => setShowNotes(false)}
+                              >
+                                Back
+                              </Button>
 
-          <TabsContent value="patients">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Patients</CardTitle>
-                    <CardDescription>Manage patient records</CardDescription>
-                  </div>
-                  <Dialog open={dialogOpen} onOpenChange={(isOpen) => {
-                    setDialogOpen(isOpen);
-                    if (!isOpen) {
-                      setStep(1);
-                      setPatientFormData({
-                        name: "",
-                        email: "",
-                        password: "",
-                        specialization: "",
-                        experience: "",
-                        qualifications: "",
-                      });
-                    }
-                  }}>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => setDialogOpen(true)}>
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Add Patient
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Add New Patient</DialogTitle>
-                        <DialogDescription>Create a new Patient and assign its credentials</DialogDescription>
-                      </DialogHeader>
+                              <Button
+                                onClick={() => {
+                                  if (!doc) {
+                                    toast({
+                                      title: "Error",
+                                      description: "Doctor not selected!",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
 
-                      {/* Minimal Progress Timeline */}
-                      <div className="mt-6 w-full">
-                        {/* Progress Line */}
-                        <div className="w-full h-2 bg-gray-300 rounded-full overflow-hidden">
-                          <div
-                            className={`h-2 bg-blue-600 transition-all duration-500 rounded-full`}
-                            style={{ width: step === 1 ? '50%' : '100%' }}
-                          ></div>
-                        </div>
+                                  handleScheduleAppointment();
 
-                        {/* Labels */}
-                        <div className="flex justify-between text-sm text-gray-600 mt-2">
-                          <span className={step === 1 ? 'text-blue-600 font-medium' : ''}>Patient credentials</span>
-                          <span className={step === 2 ? 'text-blue-600 font-medium' : ''}>Patient Info</span>
-                        </div>
+                                  setScheduleDialogOpen(false);
+                                  setSelectedPatient(null);
+                                  setScheduleData({ patientId: "", date: "", time: "", notes: "" });
+                                  setDoc(null);
+                                  setShowNotes(false);
+                                }}
+                              >
+                                Save Appointment
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  );
+
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="patients">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Patients</CardTitle>
+                  <CardDescription>Manage patient records</CardDescription>
+                </div>
+                <Dialog open={dialogOpen} onOpenChange={(isOpen) => {
+                  setDialogOpen(isOpen);
+                  if (!isOpen) {
+                    setStep(1);
+                    setPatientFormData({
+                      name: "",
+                      email: "",
+                      password: "",
+                      specialization: "",
+                      experience: "",
+                      qualifications: "",
+                    });
+                  }
+                }}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => setDialogOpen(true)}>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add Patient
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Patient</DialogTitle>
+                      <DialogDescription>Create a new Patient and assign its credentials</DialogDescription>
+                    </DialogHeader>
+
+                    {/* Minimal Progress Timeline */}
+                    <div className="mt-6 w-full">
+                      {/* Progress Line */}
+                      <div className="w-full h-2 bg-gray-300 rounded-full overflow-hidden">
+                        <div
+                          className={`h-2 bg-blue-600 transition-all duration-500 rounded-full`}
+                          style={{ width: step === 1 ? '50%' : '100%' }}
+                        ></div>
                       </div>
 
+                      {/* Labels */}
+                      <div className="flex justify-between text-sm text-gray-600 mt-2">
+                        <span className={step === 1 ? 'text-blue-600 font-medium' : ''}>Patient credentials</span>
+                        <span className={step === 2 ? 'text-blue-600 font-medium' : ''}>Patient Info</span>
+                      </div>
+                    </div>
 
-                      {/* Step 1: Patient credentials */}
-                      {step === 1 && (
-                        <div className="space-y-4 animate-in fade-in">
-                          <div className="space-y-2">
-                            <Label htmlFor="name">Patient Name</Label>
-                            <Input id="name" name="name" value={patientFormData.name} onChange={handleChangePatient} placeholder="Parth verma" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" name="email" type="email" value={patientFormData.email} onChange={handleChangePatient} placeholder="Pateint@gmail.com" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="password">password</Label>
-                            <Input id="password" name="password" value={patientFormData.password} onChange={handleChangePatient} placeholder="********" />
-                          </div>
-                          <div className="flex justify-end">
-                            <Button onClick={handleNextPateint}>Next</Button>
-                          </div>
+
+                    {/* Step 1: Patient credentials */}
+                    {step === 1 && (
+                      <div className="space-y-4 animate-in fade-in">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Patient Name</Label>
+                          <Input id="name" name="name" value={patientFormData.name} onChange={handleChangePatient} placeholder="Parth verma" />
                         </div>
-                      )}
-
-                      {/* Step 2: Patient Info */}
-                      {step === 2 && (
-                        <div className="space-y-4 animate-in fade-in">
-                          <div className="space-y-2">
-                            <Label htmlFor="age">Age</Label>
-                            <Input id="age" name="age" type="number" value={patientFormData.age} onChange={handleChangePatient} placeholder="18 year" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="gender">Gender</Label>
-                            <select
-                              id="gender"
-                              name="gender"
-                              value={patientFormData.gender}
-                              onChange={handleChangePatient}
-                              className="border rounded-lg p-2 w-full"
-                            >
-                              <option value="">Select gender</option>
-                              <option value="male">Male</option>
-                              <option value="female">Female</option>
-                              <option value="other">Other</option>
-                            </select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="contact">Contact</Label>
-                            <Input id="contact" name="contact" type="number" value={patientFormData.contact} onChange={handleChangePatient} placeholder="989765XXXX" />
-                          </div>
-                          <div className="flex justify-between">
-                            <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
-                            <Button onClick={handleCreatePatient}>Create Patient</Button>
-                          </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input id="email" name="email" type="email" value={patientFormData.email} onChange={handleChangePatient} placeholder="Pateint@gmail.com" />
                         </div>
-                      )}
-                    </DialogContent>
+                        <div className="space-y-2">
+                          <Label htmlFor="password">password</Label>
+                          <Input id="password" name="password" value={patientFormData.password} onChange={handleChangePatient} placeholder="********" />
+                        </div>
+                        <div className="flex justify-end">
+                          <Button onClick={handleNextPateint}>Next</Button>
+                        </div>
+                      </div>
+                    )}
 
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Age</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {patients.map((patient) => (
-                      <TableRow key={patient._id}>
-                        <TableCell className="font-medium">{patient.name}</TableCell>
-
-                        <TableCell>{patient.patientInfo?.gender || "N/A"}</TableCell>
-
-                        <TableCell>{patient.patientInfo?.age + " year" || "N/A"}</TableCell>
-
-
-                        <TableCell>{patient.patientInfo?.contact || "N/A"}</TableCell>
-
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">View</Button>
-                            <Button variant="outline" size="sm">Edit</Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            className="text-red-500 hover:bg-red-100 hover:text-red-600"
+                    {/* Step 2: Patient Info */}
+                    {step === 2 && (
+                      <div className="space-y-4 animate-in fade-in">
+                        <div className="space-y-2">
+                          <Label htmlFor="age">Age</Label>
+                          <Input id="age" name="age" type="number" value={patientFormData.age} onChange={handleChangePatient} placeholder="18 year" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="gender">Gender</Label>
+                          <select
+                            id="gender"
+                            name="gender"
+                            value={patientFormData.gender}
+                            onChange={handleChangePatient}
+                            className="border rounded-lg p-2 w-full"
                           >
-                            <Trash2 className="h-5 w-5" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
 
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="contact">Contact</Label>
+                          <Input id="contact" name="contact" type="number" value={patientFormData.contact} onChange={handleChangePatient} placeholder="989765XXXX" />
+                        </div>
+                        <div className="flex justify-between">
+                          <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+                          <Button onClick={handleCreatePatient}>Create Patient</Button>
+                        </div>
+                      </div>
+                    )}
+                  </DialogContent>
+
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Gender</TableHead>
+                    <TableHead>Age</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {patients.map((patient) => (
+                    <TableRow key={patient._id}>
+                      <TableCell className="font-medium">{patient.name}</TableCell>
+
+                      <TableCell>{patient.patientInfo?.gender || "N/A"}</TableCell>
+
+                      <TableCell>{patient.patientInfo?.age + " year" || "N/A"}</TableCell>
+
+
+                      <TableCell>{patient.patientInfo?.contact || "N/A"}</TableCell>
+
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">View</Button>
+                          <Button variant="outline" size="sm">Edit</Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          className="text-red-500 hover:bg-red-100 hover:text-red-600"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </main>
+    </div >
   );
 }
 
