@@ -297,7 +297,7 @@ export default function ClinicAdminDashboard() {
               <CalendarCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">{appointments.length}</div>
             </CardContent>
           </Card>
           <Card className="bg-orange-200 dark:bg-orange-700/40 
@@ -885,7 +885,7 @@ export default function ClinicAdminDashboard() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  );
+                
 
                 </TableBody>
               </Table>

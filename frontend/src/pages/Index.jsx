@@ -56,8 +56,8 @@ const Index = () => {
 
       <section className="container mx-auto px-4 py-20 text-center">
     
-        <h1 className="text-6xl font-bold text-gray-700 text-foreground mb-6">
-          Modern Clinic Management System
+        <h1 className="text-7xl font-bold text-gray-700 text-foreground mb-6">
+          Dental Clinic Management System
         </h1>
         <p className="text-medium text-muted-foreground mb-8 max-w-2xl mx-auto">
           Streamline your healthcare operations with our comprehensive platform for managing appointments, 
@@ -74,9 +74,9 @@ const Index = () => {
       </section>
 
       {/*  New Section — Fetching data from localhost:5000/clinic */}
-     <section className="container mx-auto px-4 py-20 bg-gray-100 border shadow-lg flex flex-wrap flex-col">
-  <h2 className="text-4xl font-bold text-center mb-12 text-foreground">
-    🏥 Available Clinics
+  <section className="border shadow-md  container mx-auto px-4 py-20 space-y-8">
+  <h2 className="text-6xl font-bold  text-zinc-700 text-center mb-12 text-foreground">
+     Available <span className='text-blue-400'>Clinics</span>
   </h2>
 
   {loading ? (
@@ -86,66 +86,56 @@ const Index = () => {
   ) : clinics.length === 0 ? (
     <p className="text-center text-muted-foreground">No clinics found.</p>
   ) : (
-    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-      {clinics.map((clinic) => (
-        <Card
-          key={clinic._id}
-          className="group relative  border border-border/40 bg-card/60 backdrop-blur-md hover:border-primary/60 
-                     transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 rounded-2xl overflow-hidden"
-        >
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-semibold text-primary group-hover:text-primary/90">
-                {clinic.name}
-              </CardTitle>
-              <span
-                className={`text-xs px-3 py-1 rounded-full font-medium ${
-                  clinic.status === "active"
-                    ? "bg-green-500/20 text-green-400"
-                    : "bg-red-500/20 text-red-400"
-                }`}
-              >
-                {clinic.status}
-              </span>
-            </div>
-            <CardDescription className="text-muted-foreground mt-1">
-              📍 {clinic.location}
-            </CardDescription>
-          </CardHeader>
+    clinics.map((clinic) => (
+      <Card
+        key={clinic._id}
+        className="flex flex-col md:flex-row items-center md:items-start gap-6 border border-border/20 bg-card/70 backdrop-blur-md rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6"
+      >
+        {/* Clinic Image / Placeholder */}
+        <div className="w-full md:w-48 h-48 bg-gradient-to-r from-primary/40 to-cyan-400/40 rounded-xl flex items-center justify-center text-2xl font-bold text-white">
+          {/* {clinic.name[0]} */}
+          <img src="https://i.pinimg.com/736x/3b/df/57/3bdf5702d98a357455ff4027786c3d96.jpg" alt="" />
+        </div>
 
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-              {clinic.description || "No description available"}
+        {/* Clinic Info */}
+        <div className="flex-1 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-2xl text-zinc-900  font-semibold text-primary">{clinic.name}</h3>
+            <span
+              className={`text-sm px-3 py-1 rounded-full font-medium ${
+                clinic.status === "active"
+                  ? "bg-green-500/20 text-green-500"
+                  : "bg-red-500/20 text-red-500"
+              }`}
+            >
+              {clinic.status.toUpperCase()}
+            </span>
+          </div>
+
+          <p className="text-sm text-blue-500 text-muted-foreground mb-4">
+            {clinic.description || "No description available"}
+          </p>
+
+          <div className="flex gap-6 text-sm text-muted-foreground mb-4">
+            <p>👨‍⚕️ Doctors: {clinic.doctors.length}</p>
+            <p>🧑‍🤝‍🧑 Patients: {clinic.patients.length}</p>
+            <p>📍 {clinic.location}</p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground italic">
+              Created on: {new Date(clinic.createdAt).toLocaleDateString()}
             </p>
-
-            <div className="space-y-1 text-sm">
-              <p>
-                <strong className="text-foreground">👨‍⚕️ Doctors:</strong>{" "}
-                <span className="text-muted-foreground">
-                  {clinic.doctors.length}
-                </span>
-              </p>
-              <p>
-                <strong className="text-foreground">🧑‍🤝‍🧑 Patients:</strong>{" "}
-                <span className="text-muted-foreground">
-                  {clinic.patients.length}
-                </span>
-              </p>
-            </div>
-
-            <p className="text-xs text-muted-foreground mt-4 italic">
-              Created on:{" "}
-              <span className="text-foreground">
-                {new Date(clinic.createdAt).toLocaleDateString()}
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+            <Button size="sm" className="bg-primary hover:bg-cyan-400 text-white" asChild>
+              <Link to={`/clinic/${clinic._id}`}>View Clinic</Link>
+            </Button>
+          </div>
+        </div>
+      </Card>
+    ))
   )}
 </section>
+
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Features by Role</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 const cors = require('cors');
 app.use(cors());
 
-// khi se request lelo
+// 
 app.use(cors({
   origin: '*',          // allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
